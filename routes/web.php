@@ -18,6 +18,14 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/diagnosa', function () {
+    return Inertia::render('DiagnosisForm');
+})->name('diagnosa.form');
+
+Route::get('/diagnosa/hasil', function () {
+    return Inertia::render('DiagnosisResult');
+})->name('diagnosa.result');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
