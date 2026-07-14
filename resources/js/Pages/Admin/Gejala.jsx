@@ -21,8 +21,8 @@ const INITIAL_GEJALA = [
   { code: "D15", name: "Kelelahan", weight: 0.2, desc: "Rasa lelah fisik dan mental yang sangat nyata meskipun tanpa aktivitas berat." }
 ];
 
-export default function Gejala() {
-  const [gejalaList, setGejalaList] = useState(INITIAL_GEJALA);
+export default function Gejala({ gejalas }) {
+  const [gejalaList, setGejalaList] = useState(gejalas || INITIAL_GEJALA);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   

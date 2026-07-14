@@ -46,8 +46,8 @@ const INITIAL_RULES = [
   }
 ];
 
-export default function Aturan() {
-  const [rules, setRules] = useState(INITIAL_RULES);
+export default function Aturan({ rulesList }) {
+  const [rules, setRules] = useState(rulesList || INITIAL_RULES);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeRule, setActiveRule] = useState(null);
   

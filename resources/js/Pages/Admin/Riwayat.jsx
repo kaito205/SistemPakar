@@ -77,8 +77,8 @@ const INITIAL_LOGS = [
   }
 ];
 
-export default function Riwayat() {
-  const [logs, setLogs] = useState(INITIAL_LOGS);
+export default function Riwayat({ historyLogs }) {
+  const [logs, setLogs] = useState(historyLogs || INITIAL_LOGS);
   const [selectedLog, setSelectedLog] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
