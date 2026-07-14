@@ -2,6 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  scroll-behavior: smooth;
+}
+
 @layer utilities {
   .writing-mode-vertical {
     writing-mode: vertical-rl;
@@ -48,4 +52,252 @@
 
 .animate-fadeIn {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Premium Custom Animations for Hero Section */
+@keyframes floatBadge1 {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.02);
+  }
+}
+
+@keyframes floatBadge2 {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(0.98);
+  }
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-float-badge-1 {
+  animation: floatBadge1 5s ease-in-out infinite;
+}
+
+.animate-float-badge-2 {
+  animation: floatBadge2 6s ease-in-out infinite;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 40s linear infinite;
+}
+
+@keyframes entranceLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes entranceRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes entranceDown {
+  from {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes entranceUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes entranceScale {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes spinCounter {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+.animate-entrance-left {
+  animation: entranceLeft 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-entrance-right {
+  animation: entranceRight 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-entrance-down {
+  animation: entranceDown 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-entrance-up {
+  animation: entranceUp 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-entrance-scale {
+  animation: entranceScale 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-spin-counter {
+  animation: spinCounter 45s linear infinite;
+}
+
+/* TailAdmin Sidebar Custom Components Styling */
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+.menu-item-active {
+  background-color: rgb(241 245 249); /* slate-100 */
+  color: rgb(15 23 42); /* slate-900 */
+  font-weight: 600;
+}
+
+.dark .menu-item-active {
+  background-color: rgb(30 41 59); /* slate-800 */
+  color: rgb(255 255 255);
+}
+
+.menu-item-inactive {
+  color: rgb(71 85 105); /* slate-600 */
+}
+
+.menu-item-inactive:hover {
+  background-color: rgb(248 250 252); /* slate-50 */
+  color: rgb(15 23 42);
+}
+
+.dark .menu-item-inactive {
+  color: rgb(148 163 184); /* slate-400 */
+}
+
+.dark .menu-item-inactive:hover {
+  background-color: rgba(30, 41, 59, 0.5);
+  color: rgb(255 255 255);
+}
+
+.menu-item-icon-size {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem; /* 5 */
+  height: 1.25rem;
+}
+
+.menu-item-icon-active {
+  color: #0d9488; /* teal-600 */
+}
+
+.dark .menu-item-icon-active {
+  color: #2dd4bf; /* teal-400 */
+}
+
+.menu-item-icon-inactive {
+  color: rgb(148 163 184); /* slate-400 */
+  transition: color 200ms;
+}
+
+.group:hover .menu-item-icon-inactive {
+  color: rgb(71 85 105);
+}
+
+.dark .menu-item-icon-inactive {
+  color: rgb(100 116 139); /* slate-500 */
+}
+
+.dark .group:hover .menu-item-icon-inactive {
+  color: rgb(203 213 225);
+}
+
+.menu-item-text {
+  font-size: 0.875rem;
+}
+
+/* Submenu Dropdown Items */
+.menu-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 200ms;
+}
+
+.menu-dropdown-item-active {
+  color: #0d9488; /* teal-600 */
+  font-weight: 600;
+}
+
+.dark .menu-dropdown-item-active {
+  color: #2dd4bf; /* teal-400 */
+}
+
+.menu-dropdown-item-inactive {
+  color: rgb(100 116 139); /* slate-500 */
+}
+
+.menu-dropdown-item-inactive:hover {
+  color: rgb(15 23 42); /* slate-900 */
+}
+
+.dark .menu-dropdown-item-inactive {
+  color: rgb(148 163 184); /* slate-400 */
+}
+
+.dark .menu-dropdown-item-inactive:hover {
+  color: rgb(255 255 255);
 }
