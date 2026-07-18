@@ -957,7 +957,7 @@ export default function Welcome({ auth }) {
                                 role="Ketua Kelompok"
                                 bio="Memimpin koordinasi tim, analisis sistem pakar, pengumpulan rules Certainty Factor dan penulisan deskripsi sistem."
                                 initials="IN"
-                                imagePath="/img/ikmal.jpeg"
+                                imagePath="//ikmal.jpeg"
                                 socials={{
                                     instagram:
                                         "https://www.instagram.com/ikmalnrhamdi/",
