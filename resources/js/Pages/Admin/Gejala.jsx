@@ -1,32 +1,13 @@
 import React, { useState } from "react";
 import AppLayout from "@/Layouts/admin/AppLayout";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 
-// Initial list of the 15 symptoms from the research paper
-const INITIAL_GEJALA = [
-  { code: "D1", name: "Kesedihan", weight: 1.0, desc: "Perasaan sedih, muram, atau hampa yang terus-menerus dirasakan." },
-  { code: "D2", name: "Pesimis", weight: 0.2, desc: "Memandang masa depan secara suram dan merasa tidak ada harapan." },
-  { code: "D3", name: "Kegagalan", weight: 0.2, desc: "Merasa sering gagal dalam hidup atau tidak berguna bagi orang lain." },
-  { code: "D4", name: "Kehilangan Kenikmatan", weight: 0.8, desc: "Hilangnya minat atau kesenangan dalam aktivitas sehari-hari." },
-  { code: "D5", name: "Perasaan Bersalah", weight: 0.2, desc: "Sering menyalahkan diri sendiri atas berbagai hal secara berlebihan." },
-  { code: "D6", name: "Perasaan Dihukum", weight: 0.2, desc: "Merasa sedang menerima hukuman atas kesalahan masa lalu." },
-  { code: "D7", name: "Pikiran Bunuh Diri", weight: 0.6, desc: "Munculnya pikiran menyakiti diri sendiri atau mengakhiri hidup." },
-  { code: "D8", name: "Gelisah", weight: 0.2, desc: "Perasaan cemas, tegang, dan ketidakmampuan untuk relaks." },
-  { code: "D9", name: "Kehilangan Ketertarikan", weight: 0.6, desc: "Kehilangan minat untuk bersosialisasi atau berinteraksi dengan lingkungan sekitar." },
-  { code: "D10", name: "Keraguan", weight: 0.2, desc: "Kesulitan mengambil keputusan, bahkan untuk hal sederhana sekalipun." },
-  { code: "D11", name: "Kehilangan Energi", weight: 0.2, desc: "Rasa tidak berenergi dan lemas berkepanjangan sepanjang hari." },
-  { code: "D12", name: "Perubahan Pola Tidur", weight: 0.2, desc: "Gangguan tidur berupa insomnia (sulit tidur) atau hipersomnia (tidur berlebih)." },
-  { code: "D13", name: "Perubahan Nafsu Makan", weight: 0.2, desc: "Nafsu makan berkurang secara drastis atau meningkat secara signifikan." },
-  { code: "D14", name: "Sulit Konsentrasi", weight: 0.2, desc: "Susah memfokuskan pikiran saat belajar, membaca, atau bekerja." },
-  { code: "D15", name: "Kelelahan", weight: 0.2, desc: "Rasa lelah fisik dan mental yang sangat nyata meskipun tanpa aktivitas berat." }
-];
-
-export default function Gejala() {
-  const [gejalaList, setGejalaList] = useState(INITIAL_GEJALA);
+export default function Gejala({ symptoms = [] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   
   // Form states
+  const [currentId, setCurrentId] = useState(null);
   const [currentCode, setCurrentCode] = useState("");
   const [currentName, setCurrentName] = useState("");
   const [currentWeight, setCurrentWeight] = useState(0.2);
@@ -34,7 +15,15 @@ export default function Gejala() {
 
   const openAddModal = () => {
     setModalMode("add");
-    setCurrentCode(`D${gejalaList.length + 1}`);
+    setCurrentId(null);
+    
+    // Dynamically calculate next symptom code (e.g. D16)
+    const maxCodeNumber = symptoms.reduce((max, s) => {
+      const num = parseInt(s.code.substring(1));
+      return !isNaN(num) && num > max ? num : max;
+    }, 0);
+    setCurrentCode(`D${maxCodeNumber + 1}`);
+    
     setCurrentName("");
     setCurrentWeight(0.2);
     setCurrentDesc("");
@@ -43,6 +32,7 @@ export default function Gejala() {
 
   const openEditModal = (gejala) => {
     setModalMode("edit");
+    setCurrentId(gejala.id);
     setCurrentCode(gejala.code);
     setCurrentName(gejala.name);
     setCurrentWeight(gejala.weight);
@@ -52,34 +42,49 @@ export default function Gejala() {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setCurrentId(null);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (modalMode === "add") {
-      const newGejala = {
+      router.post("/admin/gejala", {
         code: currentCode,
         name: currentName,
         weight: parseFloat(currentWeight),
         desc: currentDesc
-      };
-      setGejalaList([...gejalaList, newGejala]);
+      }, {
+        onSuccess: () => closeModal()
+      });
     } else {
-      setGejalaList(
-        gejalaList.map((g) =>
-          g.code === currentCode
-            ? { ...g, name: currentName, weight: parseFloat(currentWeight), desc: currentDesc }
-            : g
-        )
-      );
+      router.put(`/admin/gejala/${currentId}`, {
+        name: currentName,
+        weight: parseFloat(currentWeight),
+        desc: currentDesc
+      }, {
+        onSuccess: () => closeModal()
+      });
     }
-    setIsModalOpen(false);
   };
 
-  const handleDelete = (code) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus gejala ${code}?`)) {
-      setGejalaList(gejalaList.filter((g) => g.code !== code));
-    }
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteCode, setDeleteCode] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const handleDelete = (id, code) => {
+    setDeleteId(id);
+    setDeleteCode(code);
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDelete = () => {
+    router.delete(`/admin/gejala/${deleteId}`, {
+      onSuccess: () => {
+        setIsDeleteModalOpen(false);
+        setDeleteId(null);
+        setDeleteCode("");
+      }
+    });
   };
 
   return (
@@ -118,7 +123,7 @@ export default function Gejala() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {gejalaList.map((g) => (
+              {symptoms.map((g) => (
                 <tr key={g.code} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
                   <td className="px-6 py-4 font-mono font-bold text-teal-600 dark:text-teal-400 text-sm">
                     {g.code}
@@ -131,7 +136,7 @@ export default function Gejala() {
                       {g.weight.toFixed(1)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs sm:text-sm max-w-[320px] truncate md:max-w-none">
+                  <td className="px-6 py-4 text-xs sm:text-sm max-w-[280px] whitespace-normal break-words text-slate-650 dark:text-slate-400">
                     {g.desc}
                   </td>
                   <td className="px-6 py-4 text-right">
@@ -143,7 +148,7 @@ export default function Gejala() {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(g.code)}
+                        onClick={() => handleDelete(g.id, g.code)}
                         className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-350 font-semibold"
                       >
                         Hapus
@@ -253,6 +258,42 @@ export default function Gejala() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-2xl dark:bg-slate-900 dark:border-slate-800 p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <span className="p-3 rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 shrink-0">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </span>
+              <div>
+                <h3 className="text-lg font-bold text-slate-850 dark:text-white">Konfirmasi Hapus</h3>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Tindakan ini tidak dapat dibatalkan.</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-350 leading-relaxed mb-6">
+              Apakah Anda yakin ingin menghapus data gejala <span className="font-extrabold text-slate-850 dark:text-white">"{deleteCode}"</span>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-850 transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={executeDelete}
+                className="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm shadow-lg shadow-rose-500/20 transition cursor-pointer"
+              >
+                Ya, Hapus
+              </button>
+            </div>
           </div>
         </div>
       )}

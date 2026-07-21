@@ -1,53 +1,8 @@
 import React, { useState } from "react";
 import AppLayout from "@/Layouts/admin/AppLayout";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 
-// List of all 15 symptoms for reference in the rule-builder checklist
-const ALL_SYMPTOMS = [
-  { code: "D1", name: "Kesedihan", weight: 1.0 },
-  { code: "D2", name: "Pesimis", weight: 0.2 },
-  { code: "D3", name: "Kegagalan", weight: 0.2 },
-  { code: "D4", name: "Kehilangan Kenikmatan", weight: 0.8 },
-  { code: "D5", name: "Perasaan Bersalah", weight: 0.2 },
-  { code: "D6", name: "Perasaan Dihukum", weight: 0.2 },
-  { code: "D7", name: "Pikiran Bunuh Diri", weight: 0.6 },
-  { code: "D8", name: "Gelisah", weight: 0.2 },
-  { code: "D9", name: "Kehilangan Ketertarikan", weight: 0.6 },
-  { code: "D10", name: "Keraguan", weight: 0.2 },
-  { code: "D11", name: "Kehilangan Energi", weight: 0.2 },
-  { code: "D12", name: "Perubahan Pola Tidur", weight: 0.2 },
-  { code: "D13", name: "Perubahan Nafsu Makan", weight: 0.2 },
-  { code: "D14", name: "Sulit Konsentrasi", weight: 0.2 },
-  { code: "D15", name: "Kelelahan", weight: 0.2 }
-];
-
-// Initial rules dataset from the research paper
-const INITIAL_RULES = [
-  {
-    code: "M1",
-    name: "Depresi Ringan",
-    symptoms: ["D2", "D13"],
-    color: "teal",
-    description: "Kondisi depresi ringan yang umumnya dipicu oleh kejadian penuh stres spesifik. Ditandai dengan munculnya sekitar 2 hingga 5 gejala pemicu ringan."
-  },
-  {
-    code: "M2",
-    name: "Depresi Sedang",
-    symptoms: ["D1", "D3", "D5", "D6", "D8", "D10", "D11", "D12", "D14", "D15"],
-    color: "amber",
-    description: "Kondisi depresi sedang dengan gejala yang berlangsung lebih konsisten, mempengaruhi aktivitas sosial harian, dan disertai simtom fisik."
-  },
-  {
-    code: "M3",
-    name: "Depresi Berat",
-    symptoms: ["D4", "D7", "D9"],
-    color: "rose",
-    description: "Tingkat depresi berat yang mengganggu fungsi kehidupan vital dasar (seperti sulit tidur, nafsu makan hilang, atau munculnya pikiran melukai diri)."
-  }
-];
-
-export default function Aturan() {
-  const [rules, setRules] = useState(INITIAL_RULES);
+export default function Aturan({ dbSymptoms = [], dbRules = [] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeRule, setActiveRule] = useState(null);
   
@@ -62,6 +17,7 @@ export default function Aturan() {
 
   const closeModal = () => {
     setIsModalOpen(false);
+    setActiveRule(null);
   };
 
   const handleCheckboxChange = (code) => {
@@ -74,19 +30,18 @@ export default function Aturan() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setRules(
-      rules.map((r) =>
-        r.code === activeRule.code
-          ? { ...r, symptoms: checkedSymptoms }
-          : r
-      )
-    );
-    setIsModalOpen(false);
+    router.put(`/admin/aturan/${activeRule.id}`, {
+      symptoms: checkedSymptoms
+    }, {
+      onSuccess: () => {
+        closeModal();
+      }
+    });
   };
 
   // Helper to find symptom details
   const getSymptomDetails = (code) => {
-    return ALL_SYMPTOMS.find((s) => s.code === code) || { name: "Tidak Dikenal", weight: 0.0 };
+    return dbSymptoms.find((s) => s.code === code) || { name: "Tidak Dikenal", weight: 0.0 };
   };
 
   return (
@@ -103,7 +58,7 @@ export default function Aturan() {
 
       {/* Rules Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {rules.map((rule) => {
+        {dbRules.map((rule) => {
           const isTeal = rule.color === "teal";
           const isAmber = rule.color === "amber";
           const isRose = rule.color === "rose";
@@ -202,7 +157,7 @@ export default function Aturan() {
             <form onSubmit={handleSubmit} className="p-6">
               <div className="max-h-[350px] overflow-y-auto pr-2 mb-6 space-y-2 no-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {ALL_SYMPTOMS.map((symptom) => {
+                  {dbSymptoms.map((symptom) => {
                     const isChecked = checkedSymptoms.includes(symptom.code);
                     return (
                       <div

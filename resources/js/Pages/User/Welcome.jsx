@@ -99,7 +99,12 @@ function TeamMemberCard({ name, role, bio, initials, imagePath, socials }) {
     );
 }
 
-export default function Welcome({ auth }) {
+export default function Welcome({
+    auth,
+    dbSymptoms = [],
+    levelRules = { M1: "D2, D13", M2: "10 Gejala (D1, D3...)", M3: "D4, D7, D9" },
+    teamMembers = []
+}) {
     // Dark Mode State
     const [darkMode, setDarkMode] = useState(false);
 
@@ -159,6 +164,21 @@ export default function Welcome({ auth }) {
     // Dropdown state for Menu
     const [menuDropdownOpen, setMenuDropdownOpen] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Contact Form state
+    const [contactForm, setContactForm] = useState({
+        name: "",
+        email: "",
+        message: "",
+    });
+    const [contactSubmitted, setContactSubmitted] = useState(false);
+
+    const handleContactSubmit = (e) => {
+        e.preventDefault();
+        setContactSubmitted(true);
+        setContactForm({ name: "", email: "", message: "" });
+        setTimeout(() => setContactSubmitted(false), 5000);
+    };
 
     // Typewriter effect logic
     useEffect(() => {
@@ -261,7 +281,7 @@ export default function Welcome({ auth }) {
                                     FAQ
                                 </a>
                                 <a
-                                    href="#footer"
+                                    href="#kontak"
                                     className="text-sm font-semibold text-slate-600 hover:text-teal-655 dark:text-slate-300 dark:hover:text-teal-400 transition"
                                 >
                                     Kontak
@@ -409,9 +429,9 @@ export default function Welcome({ auth }) {
                             FAQ
                         </a>
                         <a
-                            href="#footer"
+                            href="#kontak"
                             onClick={() => setMobileMenuOpen(false)}
-                            className="text-base font-bold text-slate-650 dark:text-slate-350 py-2 border-b border-slate-100 dark:border-slate-900"
+                            className="text-base font-bold text-slate-655 dark:text-slate-350 py-2 border-b border-slate-100 dark:border-slate-900"
                         >
                             Kontak
                         </a>
@@ -637,11 +657,10 @@ export default function Welcome({ auth }) {
                                 <button
                                     key={idx}
                                     onClick={() => setCurrentQuoteIndex(idx)}
-                                    className={`w-3 h-3 rounded-full transition-all ${
-                                        idx === currentQuoteIndex
+                                    className={`w-3 h-3 rounded-full transition-all ${idx === currentQuoteIndex
                                             ? "bg-teal-500 w-8"
                                             : "bg-slate-350 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600"
-                                    }`}
+                                        }`}
                                     aria-label={`Go to slide ${idx + 1}`}
                                 />
                             ))}
@@ -660,7 +679,7 @@ export default function Welcome({ auth }) {
                                 Indikator Gejala
                             </h2>
                             <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
-                                15 Gejala Depresi yang Dievaluasi
+                                {dbSymptoms.length} Gejala Depresi yang Dievaluasi
                             </h3>
                             <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto mt-4 text-sm sm:text-base">
                                 Berikut adalah gejala-gejala berdasarkan rujukan
@@ -671,83 +690,7 @@ export default function Welcome({ auth }) {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[
-                                {
-                                    code: "D1",
-                                    name: "Kesedihan",
-                                    desc: "Perasaan sedih, muram, atau hampa yang terus-menerus dirasakan.",
-                                },
-                                {
-                                    code: "D2",
-                                    name: "Pesimis",
-                                    desc: "Memandang masa depan secara suram dan merasa tidak ada harapan.",
-                                },
-                                {
-                                    code: "D3",
-                                    name: "Kegagalan",
-                                    desc: "Merasa sering gagal dalam hidup atau tidak berguna bagi orang lain.",
-                                },
-                                {
-                                    code: "D4",
-                                    name: "Kehilangan Kenikmatan",
-                                    desc: "Hilangnya minat atau kesenangan dalam aktivitas sehari-hari.",
-                                },
-                                {
-                                    code: "D5",
-                                    name: "Perasaan Bersalah",
-                                    desc: "Sering menyalahkan diri sendiri atas berbagai hal secara berlebihan.",
-                                },
-                                {
-                                    code: "D6",
-                                    name: "Perasaan Dihukum",
-                                    desc: "Merasa sedang menerima hukuman atas kesalahan masa lalu.",
-                                },
-                                {
-                                    code: "D7",
-                                    name: "Pikiran Bunuh Diri",
-                                    desc: "Munculnya pikiran menyakiti diri sendiri atau mengakhiri hidup.",
-                                },
-                                {
-                                    code: "D8",
-                                    name: "Gelisah",
-                                    desc: "Perasaan cemas, tegang, dan ketidakmampuan untuk relaks.",
-                                },
-                                {
-                                    code: "D9",
-                                    name: "Kehilangan Ketertarikan",
-                                    desc: "Kehilangan minat untuk bersosialisasi atau berinteraksi dengan lingkungan sekitar.",
-                                },
-                                {
-                                    code: "D10",
-                                    name: "Keraguan",
-                                    desc: "Kesulitan mengambil keputusan, bahkan untuk hal sederhana sekalipun.",
-                                },
-                                {
-                                    code: "D11",
-                                    name: "Kehilangan Energi",
-                                    desc: "Rasa tidak berenergi dan lemas berkepanjangan sepanjang hari.",
-                                },
-                                {
-                                    code: "D12",
-                                    name: "Perubahan Pola Tidur",
-                                    desc: "Gangguan tidur berupa insomnia (sulit tidur) atau hipersomnia (tidur berlebih).",
-                                },
-                                {
-                                    code: "D13",
-                                    name: "Perubahan Nafsu Makan",
-                                    desc: "Nafsu makan berkurang secara drastis atau meningkat secara signifikan.",
-                                },
-                                {
-                                    code: "D14",
-                                    name: "Sulit Konsentrasi",
-                                    desc: "Susah memfokuskan pikiran saat belajar, membaca, atau bekerja.",
-                                },
-                                {
-                                    code: "D15",
-                                    name: "Kelelahan",
-                                    desc: "Rasa lelah fisik dan mental yang sangat nyata meskipun tanpa aktivitas berat.",
-                                },
-                            ].map((g) => (
+                            {dbSymptoms.map((g) => (
                                 <div
                                     key={g.code}
                                     className="p-6 bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-3xl hover:border-teal-500/30 dark:hover:border-teal-500/25 transition duration-300 group"
@@ -812,7 +755,7 @@ export default function Welcome({ auth }) {
                                 <div className="pt-6 border-t border-slate-100 dark:border-slate-850 flex justify-between items-center text-xs font-mono text-slate-400">
                                     <span>Gejala Utama:</span>
                                     <span className="font-bold text-teal-600 dark:text-teal-400">
-                                        D2, D13
+                                        {levelRules.M1}
                                     </span>
                                 </div>
                             </div>
@@ -838,7 +781,7 @@ export default function Welcome({ auth }) {
                                 <div className="pt-6 border-t border-slate-100 dark:border-slate-850 flex justify-between items-center text-xs font-mono text-slate-400">
                                     <span>Total Asosiasi:</span>
                                     <span className="font-bold text-teal-600 dark:text-teal-400">
-                                        10 Gejala (D1, D3...)
+                                        {levelRules.M2}
                                     </span>
                                 </div>
                             </div>
@@ -864,7 +807,7 @@ export default function Welcome({ auth }) {
                                 <div className="pt-6 border-t border-slate-100 dark:border-slate-850 flex justify-between items-center text-xs font-mono text-slate-400">
                                     <span>Gejala Kunci:</span>
                                     <span className="font-bold text-rose-600 dark:text-rose-400">
-                                        D4, D7, D9
+                                        {levelRules.M3}
                                     </span>
                                 </div>
                             </div>
@@ -905,11 +848,10 @@ export default function Welcome({ auth }) {
                                     >
                                         <span>{item.question}</span>
                                         <svg
-                                            className={`w-5 h-5 text-teal-600 transition-transform duration-300 ${
-                                                openFaqIndex === idx
+                                            className={`w-5 h-5 text-teal-600 transition-transform duration-300 ${openFaqIndex === idx
                                                     ? "rotate-180"
                                                     : ""
-                                            }`}
+                                                }`}
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             stroke="currentColor"
@@ -952,58 +894,154 @@ export default function Welcome({ auth }) {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <TeamMemberCard
-                                name="Ikmal Nurhamdi"
-                                role="Ketua Kelompok"
-                                bio="Memimpin koordinasi tim, analisis sistem pakar, pengumpulan rules Certainty Factor dan penulisan deskripsi sistem."
-                                initials="IN"
-                                imagePath="/img/ikmal.jpeg"
-                                socials={{
-                                    instagram:
-                                        "https://www.instagram.com/ikmalnrhamdi/",
-                                    github: "https://github.com/ikmalnurhamdi",
-                                    linkedin:
-                                        "https://linkedin.com/in/ikmal-nurhamdi/",
-                                }}
-                            />
-                            <TeamMemberCard
-                                name="Muhammad Jaja Maulana"
-                                role="Frontend Developer"
-                                bio="Mewujudkan arsitektur kode React, integrasi Inertia, desain UI/UX bertema terang yang premium, serta transisi animasi kustom."
-                                initials="MM"
-                                imagePath="/img/jaja.png"
-                                socials={{
-                                    instagram:
-                                        "https://www.instagram.com/majmu.io/",
-                                    github: "https://github.com/kaito205",
-                                    linkedin: "https://linkedin.com/in/jajamaulana/",
-                                }}
-                            />
-                            <TeamMemberCard
-                                name="Fauzi Gilang Raihan"
-                                role="Backend Developer"
-                                bio="Merancang struktur database, penanganan data diagnosis, skema kompilasi, serta penyusunan logika controller backend."
-                                initials="FG"
-                                imagePath="/img/gilang.png"
-                                socials={{
-                                    instagram:
-                                        "https://www.instagram.com/fauzigilangraihan/",
-                                    github: "https://github.com/",
-                                    linkedin: "https://www.linkedin.com/in/fauzi-g-raihan-6884843aa/",
-                                }}
-                            />
-                            <TeamMemberCard
-                                name="Ikhwan Gifari"
-                                role="Data Analis (Pakar)"
-                                bio="Mencari data ahli/pakar, menganalisis gejala depresi mahasiswa, merumuskan nilai keyakinan Certainty Factor (MB & MD)."
-                                initials="IG"
-                                imagePath="/img/ikhwan.jpeg"
-                                socials={{
-                                    instagram: "https://www.instagram.com/wan_gifarr/",
-                                    github: "https://github.com/ikhwangifari",
-                                    linkedin: "https://www.linkedin.com/in/ikhwan-gifari25/",
-                                }}
-                            />
+                            {teamMembers.map((member) => (
+                                <TeamMemberCard
+                                    key={member.id}
+                                    name={member.name}
+                                    role={member.role}
+                                    bio={member.bio}
+                                    initials={member.initials}
+                                    imagePath={member.imagePath}
+                                    socials={member.socials}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Kontak Section */}
+                <section
+                    id="kontak"
+                    className="py-28 bg-slate-50 border-t border-slate-200/60 dark:bg-slate-900 dark:border-slate-850"
+                >
+                    <div className="max-w-6xl mx-auto px-6">
+                        <div className="text-center mb-20">
+                            <h2 className="text-xs uppercase tracking-widest text-teal-605 font-bold mb-3">
+                                Hubungi Kami
+                            </h2>
+                            <h3 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white">
+                                Dapatkan Dukungan & Bantuan
+                            </h3>
+                            <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto mt-4 text-sm sm:text-base">
+                                Kami siap mendengarkan. Punya pertanyaan atau saran terkait sistem pakar kami? Hubungi tim pendukung kami melalui formulir di bawah.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                            {/* Contact Form */}
+                            <div className="lg:col-span-7 bg-white dark:bg-slate-950 p-8 sm:p-10 rounded-[32px] border border-slate-200/60 shadow-lg shadow-slate-200/30 dark:border-slate-800 dark:shadow-none">
+                                <h4 className="text-xl font-bold text-slate-850 dark:text-white mb-6">
+                                    Kirim Pesan Langsung
+                                </h4>
+                                {contactSubmitted ? (
+                                    <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 text-emerald-800 dark:bg-emerald-950/20 dark:border-emerald-805 dark:text-emerald-300 flex items-start gap-3 animate-fadeIn">
+                                        <svg className="w-6 h-6 shrink-0 text-emerald-600 dark:text-emerald-455" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div>
+                                            <p className="font-bold text-sm">Pesan Berhasil Terkirim!</p>
+                                            <p className="text-xs mt-1 leading-normal opacity-90">Terima kasih atas pesan Anda. Tim pendukung kami akan segera menghubungi Anda kembali.</p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleContactSubmit} className="space-y-5">
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Nama Lengkap</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={contactForm.name}
+                                                onChange={(e) => setContactForm({ ...contactForm, name: e.target.value })}
+                                                placeholder="Masukkan nama lengkap Anda..."
+                                                className="w-full h-12 px-4 rounded-xl border border-slate-200/80 bg-transparent text-sm focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 dark:border-slate-800 dark:text-white transition duration-200"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Alamat Email</label>
+                                            <input
+                                                type="email"
+                                                required
+                                                value={contactForm.email}
+                                                onChange={(e) => setContactForm({ ...contactForm, email: e.target.value })}
+                                                placeholder="Masukkan alamat email aktif..."
+                                                className="w-full h-12 px-4 rounded-xl border border-slate-200/80 bg-transparent text-sm focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 dark:border-slate-800 dark:text-white transition duration-200"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Pesan Anda</label>
+                                            <textarea
+                                                required
+                                                rows="5"
+                                                value={contactForm.message}
+                                                onChange={(e) => setContactForm({ ...contactForm, message: e.target.value })}
+                                                placeholder="Tuliskan pertanyaan atau kendala Anda di sini..."
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200/80 bg-transparent text-sm focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 dark:border-slate-800 dark:text-white transition duration-200"
+                                            ></textarea>
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            className="w-full h-12 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-extrabold text-sm shadow-lg shadow-teal-500/20 transition duration-200 flex items-center justify-center gap-2 cursor-pointer"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                            </svg>
+                                            Kirim Pesan
+                                        </button>
+                                    </form>
+                                )}
+                            </div>
+
+                            {/* Contact Info Cards */}
+                            <div className="lg:col-span-5 space-y-6">
+                                {/* Card 1: Email */}
+                                <div className="p-6 rounded-[24px] border border-slate-200/60 bg-white dark:border-slate-800 dark:bg-slate-950 flex items-start gap-4">
+                                    <div className="p-3.5 rounded-2xl bg-teal-50 text-teal-600 dark:bg-teal-950/30 dark:text-teal-400 shrink-0">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 className="font-extrabold text-slate-850 dark:text-white text-base">E-mail Bantuan</h5>
+                                        <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold mt-1">Layanan aduan & feedback sistem</p>
+                                        <a href="mailto:support@depresicheck.com" className="text-teal-600 dark:text-teal-400 text-sm font-bold mt-2 inline-block hover:underline">
+                                            support@depresicheck.com
+                                        </a>
+                                    </div>
+                                </div>
+
+                                {/* Card 2: Lokasi */}
+                                <div className="p-6 rounded-[24px] border border-slate-200/60 bg-white dark:border-slate-800 dark:bg-slate-950 flex items-start gap-4">
+                                    <div className="p-3.5 rounded-2xl bg-teal-50 text-teal-600 dark:bg-teal-950/30 dark:text-teal-400 shrink-0">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 className="font-extrabold text-slate-850 dark:text-white text-base">Lokasi Kampus</h5>
+                                        <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold mt-1">STMIK Mardira Indonesia</p>
+                                        <p className="text-slate-600 dark:text-slate-350 text-sm font-medium mt-2 leading-relaxed">
+                                            Jl. Soekarno-Hatta No. 211, Leuwipanjang, Bojongloa Kidul, Kota Bandung, Jawa Barat 40233
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Card 3: Waktu Pelayanan */}
+                                <div className="p-6 rounded-[24px] border border-slate-200/60 bg-white dark:border-slate-800 dark:bg-slate-950 flex items-start gap-4">
+                                    <div className="p-3.5 rounded-2xl bg-teal-50 text-teal-600 dark:bg-teal-950/30 dark:text-teal-400 shrink-0">
+                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h5 className="font-extrabold text-slate-850 dark:text-white text-base">Waktu Pelayanan</h5>
+                                        <p className="text-slate-400 dark:text-slate-500 text-xs font-semibold mt-1">Jam operasional konsultasi/dukungan</p>
+                                        <p className="text-slate-600 dark:text-slate-350 text-sm font-bold mt-2">
+                                            Senin - Jumat: 09:00 - 17:00 WIB
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -1062,6 +1100,12 @@ export default function Welcome({ auth }) {
                                     className="hover:text-teal-400 transition"
                                 >
                                     FAQ
+                                </a>
+                                <a
+                                    href="#kontak"
+                                    className="hover:text-teal-400 transition"
+                                >
+                                    Kontak
                                 </a>
                             </div>
 

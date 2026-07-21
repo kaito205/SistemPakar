@@ -1,24 +1,6 @@
 import { Head, Link, router } from "@inertiajs/react";
 import React, { useState, useEffect } from "react";
 
-const GEJALA_LIST = [
-  { kode_gejala: "D1", gejala: "Kesedihan" },
-  { kode_gejala: "D2", gejala: "Pesimis" },
-  { kode_gejala: "D3", gejala: "Kegagalan" },
-  { kode_gejala: "D4", gejala: "Kehilangan Kenikmatan" },
-  { kode_gejala: "D5", gejala: "Perasaan Bersalah" },
-  { kode_gejala: "D6", gejala: "Perasaan dihukum" },
-  { kode_gejala: "D7", gejala: "Pikiran Bunuh Diri" },
-  { kode_gejala: "D8", gejala: "Gelisah" },
-  { kode_gejala: "D9", gejala: "Kehilangan Ketertarikan" },
-  { kode_gejala: "D10", gejala: "Keraguan" },
-  { kode_gejala: "D11", gejala: "Kehilangan Energi" },
-  { kode_gejala: "D12", gejala: "Perubahan Pola Tidur" },
-  { kode_gejala: "D13", gejala: "Perubahan Nafsu Makan" },
-  { kode_gejala: "D14", gejala: "Sulit Konsentrasi" },
-  { kode_gejala: "D15", gejala: "Kelelahan" },
-];
-
 const KONDISI_CHOICES = [
   {
     kondisi: "Sangat Yakin",
@@ -74,10 +56,18 @@ const KONDISI_CHOICES = [
 export default function DiagnosisForm() {
   // Dark Mode State
   const [darkMode, setDarkMode] = useState(false);
+  const [symptoms, setSymptoms] = useState([]);
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains("dark");
     setDarkMode(isDark);
+  }, []);
+
+  useEffect(() => {
+    fetch('/api/symptoms')
+      .then(response => response.json())
+      .then(data => setSymptoms(data))
+      .catch(error => console.error('Error fetching symptoms:', error));
   }, []);
 
   const toggleDarkMode = () => {
@@ -107,13 +97,13 @@ export default function DiagnosisForm() {
       [activeIndex]: value,
     });
 
-    if (activeIndex < GEJALA_LIST.length - 1) {
+    if (activeIndex < symptoms.length - 1) {
       setActiveIndex((prev) => prev + 1);
     }
   };
 
   const handleNext = () => {
-    if (activeIndex < GEJALA_LIST.length - 1) {
+    if (activeIndex < symptoms.length - 1) {
       setActiveIndex(activeIndex + 1);
     }
   };
@@ -127,34 +117,60 @@ export default function DiagnosisForm() {
   };
 
   const countAnswered = Object.keys(answers).length;
-  const isCompleted = countAnswered === GEJALA_LIST.length;
+  const isCompleted = countAnswered === symptoms.length;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (countAnswered < GEJALA_LIST.length) {
+    if (countAnswered < symptoms.length) {
       alert(
-        `Harap selesaikan semua pertanyaan terlebih dahulu! Baru menjawab ${countAnswered} dari ${GEJALA_LIST.length} pertanyaan.`
+        `Harap selesaikan semua pertanyaan terlebih dahulu! Baru menjawab ${countAnswered} dari ${symptoms.length} pertanyaan.`
       );
       return;
     }
 
-    const formattedAnswers = GEJALA_LIST.map((item, idx) => {
-      return [item.kode_gejala, answers[idx]];
-    });
+    const responses = symptoms.map((symptom, idx) => ({
+      symptom_id: symptom.id,
+      user_cf: answers[idx] || 0,
+    }));
 
-    localStorage.setItem(
-      "depresicheck_answers",
-      JSON.stringify(formattedAnswers)
-    );
+    try {
+      const response = await fetch('/api/diagnose', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          nama,
+          nim,
+          prodi,
+          angkatan,
+          responses
+        }),
+      });
 
-    // Save Student Identity
-    const userInfo = { nama, nim, prodi, angkatan };
-    localStorage.setItem("depresicheck_user_info", JSON.stringify(userInfo));
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('API Error:', errorData);
+        throw new Error(errorData.message || 'API request failed');
+      }
 
-    router.visit("/diagnosa/hasil");
+      const data = await response.json();
+      
+      localStorage.setItem('depresicheck_results', JSON.stringify(data));
+      
+      // Save Student Identity
+      const userInfo = { nama, nim, prodi, angkatan };
+      localStorage.setItem("depresicheck_user_info", JSON.stringify(userInfo));
+
+      router.visit("/diagnosa/hasil");
+    } catch (error) {
+      console.error('Error submitting diagnosis:', error);
+      alert('Terjadi kesalahan saat mengirim data diagnosa: ' + error.message);
+    }
   };
 
-  const currentGejala = activeIndex >= 0 ? GEJALA_LIST[activeIndex] : null;
+  const currentGejala = activeIndex >= 0 ? symptoms[activeIndex] : null;
   const currentSelectedValue = activeIndex >= 0 ? answers[activeIndex] : null;
 
   return (
@@ -356,7 +372,7 @@ export default function DiagnosisForm() {
                     <div className="flex justify-between items-center text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-6 font-semibold">
                       <span>Kuesioner Gejala</span>
                       <span className="font-mono text-teal-600 dark:text-teal-400 font-bold">
-                        Pertanyaan {activeIndex + 1} dari {GEJALA_LIST.length}
+                        Pertanyaan {activeIndex + 1} dari {symptoms.length}
                       </span>
                     </div>
 
@@ -366,7 +382,7 @@ export default function DiagnosisForm() {
                         className="h-full bg-teal-500 transition-all duration-300"
                         style={{
                           width: `${
-                            ((activeIndex + 1) / GEJALA_LIST.length) * 100
+                            ((activeIndex + 1) / symptoms.length) * 100
                           }%`,
                         }}
                       ></div>
@@ -375,12 +391,12 @@ export default function DiagnosisForm() {
                     {/* Question Title */}
                     <div className="mb-8">
                       <span className="text-sm font-bold text-teal-600 dark:text-teal-450 mb-2 block">
-                        {currentGejala.kode_gejala}
+                        {currentGejala?.code}
                       </span>
                       <h2 className="text-2xl sm:text-3xl font-extrabold leading-snug text-slate-900 dark:text-white">
                         Apakah Anda mengalami gejala{" "}
                         <span className="text-teal-600 dark:text-teal-400">
-                          {currentGejala.gejala}
+                          {currentGejala?.name}
                         </span>
                         ?
                       </h2>
@@ -457,7 +473,7 @@ export default function DiagnosisForm() {
                       Sebelumnya
                     </button>
 
-                    {activeIndex === GEJALA_LIST.length - 1 ? (
+                    {activeIndex === symptoms.length - 1 ? (
                       <button
                         type="button"
                         onClick={handleSubmit}
@@ -536,13 +552,13 @@ export default function DiagnosisForm() {
                   </h3>
 
                   <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-5 gap-2">
-                    {GEJALA_LIST.map((item, idx) => {
+                    {symptoms.map((item, idx) => {
                       const isAnswered = answers[idx] !== undefined;
                       const isActive = activeIndex === idx;
 
                       return (
                         <button
-                          key={item.kode_gejala}
+                          key={item.id}
                           onClick={() => setActiveIndex(idx)}
                           className={`h-10 rounded-lg text-xs font-mono font-bold transition flex items-center justify-center border ${
                             isActive
@@ -552,7 +568,7 @@ export default function DiagnosisForm() {
                               : "border-slate-200 bg-slate-50 text-slate-400 hover:border-slate-350 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-600"
                           }`}
                         >
-                          {item.kode_gejala.replace("D", "")}
+                          {item.code.replace("D", "")}
                         </button>
                       );
                     })}

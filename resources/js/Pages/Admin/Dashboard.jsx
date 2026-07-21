@@ -2,15 +2,16 @@ import React from "react";
 import AppLayout from "@/Layouts/admin/AppLayout";
 import { Head } from "@inertiajs/react";
 
-export default function Dashboard() {
-  // Mock data representing recent diagnostics
-  const RECENT_DIAGNOSES = [
-    { id: 1, name: "Ahmad Faisal", date: "14 Juli 2026, 17:05", score: 84.3, level: "Depresi Sedang (M2)", type: "M2" },
-    { id: 2, name: "Siti Rahmawati", date: "14 Juli 2026, 16:12", score: 92.1, level: "Depresi Berat (M3)", type: "M3" },
-    { id: 3, name: "Budi Santoso", date: "13 Juli 2026, 21:40", score: 42.0, level: "Depresi Ringan (M1)", type: "M1" },
-    { id: 4, name: "Dina Lestari", date: "13 Juli 2026, 11:15", score: 58.5, level: "Depresi Sedang (M2)", type: "M2" },
-    { id: 5, name: "Rian Hidayat", date: "12 Juli 2026, 09:30", score: 18.2, level: "Normal (Tidak Depresi)", type: "Normal" }
-  ];
+export default function Dashboard({
+  stats = { total: 0, m1: 0, m2: 0, m3: 0 },
+  recentDiagnoses = [],
+  symptomsCount = 0,
+  rulesCount = 0,
+  trendData = []
+}) {
+  const RECENT_DIAGNOSES = recentDiagnoses;
+  const maxTrendValue = Math.max(...trendData.map(d => d.value), 10);
+  const scale = 200 / maxTrendValue;
 
   return (
     <AppLayout>
@@ -26,7 +27,7 @@ export default function Dashboard() {
         </div>
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-650 dark:text-slate-350 border border-slate-200/50 dark:border-slate-700/50">
           <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
-          Sistem Aktif & Terpantau
+          Sistem Aksif & Terpantau
         </div>
       </div>
 
@@ -44,8 +45,8 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">154</span>
-            <span className="text-xs font-bold text-teal-600 dark:text-teal-400">+12% mgg ini</span>
+            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.total}</span>
+            <span className="text-xs font-bold text-teal-600 dark:text-teal-400">log masuk</span>
           </div>
         </div>
 
@@ -59,8 +60,10 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">68</span>
-            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">44.1% dari total</span>
+            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.m1}</span>
+            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+              {stats.total > 0 ? ((stats.m1 / stats.total) * 100).toFixed(1) : 0}% dari total
+            </span>
           </div>
         </div>
 
@@ -74,8 +77,10 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">52</span>
-            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">33.7% dari total</span>
+            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.m2}</span>
+            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+              {stats.total > 0 ? ((stats.m2 / stats.total) * 100).toFixed(1) : 0}% dari total
+            </span>
           </div>
         </div>
 
@@ -89,8 +94,10 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">34</span>
-            <span className="text-xs font-bold text-rose-600 dark:text-rose-400">Tindakan Cepat</span>
+            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.m3}</span>
+            <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
+              {stats.total > 0 ? ((stats.m3 / stats.total) * 100).toFixed(1) : 0}% dari total
+            </span>
           </div>
         </div>
       </div>
@@ -120,18 +127,10 @@ export default function Dashboard() {
               </div>
 
               {/* Bar Columns */}
-              {[
-                { label: "Sen", value: 40, active: 15 },
-                { label: "Sel", value: 65, active: 25 },
-                { label: "Rab", value: 85, active: 40 },
-                { label: "Kam", value: 50, active: 18 },
-                { label: "Jum", value: 110, active: 55 },
-                { label: "Sab", value: 95, active: 48 },
-                { label: "Ahd", value: 120, active: 62 }
-              ].map((day, idx) => (
+              {trendData.map((day, idx) => (
                 <div key={idx} className="flex flex-col items-center flex-1 group z-10">
-                  <div className="relative w-8 bg-slate-100 dark:bg-slate-800/40 rounded-t-lg flex flex-col justify-end overflow-hidden transition-all duration-300 hover:bg-slate-200/50" style={{ height: `${day.value * 1.5}px` }}>
-                    <div className="w-full bg-teal-500/80 dark:bg-teal-500/60 rounded-t-lg" style={{ height: `${day.active * 1.5}px` }}></div>
+                  <div className="relative w-8 bg-slate-100 dark:bg-slate-800/40 rounded-t-lg flex flex-col justify-end overflow-hidden transition-all duration-300 hover:bg-slate-200/50" style={{ height: `${day.value * scale}px` }}>
+                    <div className="w-full bg-teal-500/80 dark:bg-teal-500/60 rounded-t-lg" style={{ height: `${day.active * scale}px` }}></div>
                   </div>
                   <span className="mt-3 text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500">{day.label}</span>
                 </div>
@@ -207,10 +206,10 @@ export default function Dashboard() {
                   </span>
                   <div>
                     <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Gejala Depresi</h4>
-                    <p className="text-[10px] text-slate-400">15 Kode Gejala Terdaftar</p>
+                    <p className="text-[10px] text-slate-400">{symptomsCount} Kode Gejala Terdaftar</p>
                   </div>
                 </div>
-                <span className="font-mono text-sm font-bold text-slate-800 dark:text-white bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-lg">15</span>
+                <span className="font-mono text-sm font-bold text-slate-800 dark:text-white bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-lg">{symptomsCount}</span>
               </div>
 
               {/* Parameter 2: Aturan CF */}
@@ -223,10 +222,10 @@ export default function Dashboard() {
                   </span>
                   <div>
                     <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Kombinasi Aturan CF</h4>
-                    <p className="text-[10px] text-slate-400">3 Kategori Aturan Pakar</p>
+                    <p className="text-[10px] text-slate-400">{rulesCount} Kategori Aturan Pakar</p>
                   </div>
                 </div>
-                <span className="font-mono text-sm font-bold text-slate-800 dark:text-white bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-lg">3</span>
+                <span className="font-mono text-sm font-bold text-slate-800 dark:text-white bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-lg">{rulesCount}</span>
               </div>
 
               {/* Parameter 3: Keadaan Sistem */}

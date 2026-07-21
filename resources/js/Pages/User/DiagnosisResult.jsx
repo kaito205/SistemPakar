@@ -1,73 +1,11 @@
 import { Head, Link, router } from '@inertiajs/react';
 import React, { useState, useEffect } from 'react';
 
-// Symptom dictionary for lookup
-const GEJALA_DICT = {
-    "D1": "Kesedihan",
-    "D2": "Pesimis",
-    "D3": "Kegagalan",
-    "D4": "Kehilangan Kenikmatan",
-    "D5": "Perasaan Bersalah",
-    "D6": "Perasaan dihukum",
-    "D7": "Pikiran Bunuh Diri",
-    "D8": "Gelisah",
-    "D9": "Kehilangan Ketertarikan",
-    "D10": "Keraguan",
-    "D11": "Kehilangan Energi",
-    "D12": "Perubahan Pola Tidur",
-    "D13": "Perubahan Nafsu Makan",
-    "D14": "Sulit Konsentrasi",
-    "D15": "Kelelahan"
-};
-
 // Depresi categories
 const DEPRESI_DICT = {
     "M1": { id: "M1", name: "Depresi Ringan (Mild/Minor)", badgeColor: "bg-teal-50 text-teal-750 border-teal-200 dark:bg-slate-800 dark:text-teal-400 dark:border-slate-700" },
     "M2": { id: "M2", name: "Depresi Sedang (Moderate)", badgeColor: "bg-teal-100 text-teal-850 border-teal-300 dark:bg-slate-800 dark:text-teal-300 dark:border-slate-700" },
     "M3": { id: "M3", name: "Depresi Berat (Severe/Major)", badgeColor: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-slate-800 dark:text-rose-400 dark:border-slate-700" }
-};
-
-// Expert Rules (Certainty Factor weights from paper)
-const RULES = [
-    // M1 => Depresi Ringan (Mild)
-    { kode_depresi: "M1", kode_gejala: "D2", pakar_cf: 0.2 },
-    { kode_depresi: "M1", kode_gejala: "D13", pakar_cf: 1.0 },
-
-    // M2 => Depresi Sedang (Moderate)
-    { kode_depresi: "M2", kode_gejala: "D1", pakar_cf: 1.0 },
-    { kode_depresi: "M2", kode_gejala: "D3", pakar_cf: 0.8 },
-    { kode_depresi: "M2", kode_gejala: "D5", pakar_cf: 0.4 },
-    { kode_depresi: "M2", kode_gejala: "D6", pakar_cf: 0.3 },
-    { kode_depresi: "M2", kode_gejala: "D8", pakar_cf: 0.8 },
-    { kode_depresi: "M2", kode_gejala: "D10", pakar_cf: 1.0 },
-    { kode_depresi: "M2", kode_gejala: "D11", pakar_cf: 0.3 },
-    { kode_depresi: "M2", kode_gejala: "D12", pakar_cf: 0.8 },
-    { kode_depresi: "M2", kode_gejala: "D14", pakar_cf: 0.4 },
-    { kode_depresi: "M2", kode_gejala: "D15", pakar_cf: 0.2 },
-
-    // M3 => Depresi Berat (Severe)
-    { kode_depresi: "M3", kode_gejala: "D4", pakar_cf: 0.5 },
-    { kode_depresi: "M3", kode_gejala: "D7", pakar_cf: 0.8 },
-    { kode_depresi: "M3", kode_gejala: "D9", pakar_cf: 1.0 }
-];
-
-// Symptom Solutions / Suggestions (S) from paper
-const SUGGESTIONS = {
-    "D1": "Cobalah untuk menyadari bahwa semua orang pada saat yang berbeda juga mengalami hal yang sama seperti Anda rasakan. Yakinkan diri, cepat atau lambat kesedihan ini akan berakhir.",
-    "D2": "Saat keyakinan sudah mantap dalam hati, maka dia akan begitu semangat dalam berikhtiar, optimis, dan menyongsong masa depan yang lebih baik. Masa lalu boleh kelabu. Saat ini mungkin banyak masalah. Tetapi, tidak ada alasan kalau besok akan tetap seperti ini.",
-    "D3": "Bersyukurlah jika anda mengalami kegagalan atau kemalangan. Karena dengan kegagalan anda sedang disiapkan untuk meraih kesuksesan yang lebih besar. Anda akan ditempa untuk menjadi lebih kuat dari sebelumnya.",
-    "D4": "Mencobalah untuk membuka diri dan menerima masukan dari orang lain, tujuan nya agar kita tidak selalu terdiam karena terpikir sutu masalah.",
-    "D5": "Perasaan bersalah muncul karena merasa Tertekan karena Berbagai Kewajiban Dalam penyusunan skripsi, dengan ini cobalah anda untuk mencoba dan berpikir positif dan terus mencoba.",
-    "D6": "Perasaan dihukum muncul karena berawalkan dari kegagalan yang pernah anda alami secara terus menerus, untuk menetralisir itu perlu adanya dukungan dari orang lain, berusahalah terus karena sejatinya itu adalah ujian hidup yang harus anda lewati.",
-    "D7": "Gunakan kesadaran Anda sebagai manusia utuh. Daripada memikirkan masalah atau pemecahannya, lebih baik kita bergerak ke jalan yang baru: jangan pikirkan masalah itu dulu. Dengan menggunakan kesadaran yang kita miliki, kita harus mengabaikan pikiran yang mengatakan bahwa situasi yang sedang kita hadapi itu sangat ‘complicated’. Ingat bahwa pikiran bukanlah diri kita yang sebenarnya. Dengan prinsip ini, gunakanlah kesadaran kita yang sepenuhnya sebagai ciptaan Allah yang utuh Intinya, kesadaran Anda harus mampu mengatakan, “Ini dapat diatasi”.",
-    "D8": "Tantangan, pada hakikatnya bukan untuk dihindari, melainkan justru untuk dilakoni. Hidup itu sendiri adalah tantangan, adalah masalah. Mengapa kita mesti menghindar? Di sinilah kadang-kadang kita lupa pada kesejatian diri. Selalu berusaha dan katakan dalam hati ini pasti berahir dengan.",
-    "D9": "Jangan selalu terdiam karena masalah yang ini, masih banyak yang harus anda lakukan cobalah bangkit “anda masih di tunggu” bangkitlah sekarang!!",
-    "D10": "Sebetulnya, semangat yang kuat itu diperlukan untuk mengatasi semua keraguan dan cobaan yang bisa mematikan kesungguhannya untuk mencapai hal-hal penting atau besar yang diinginkannya.",
-    "D11": "Yang pasti, setiap masalah yang nyata, pasti ada pemecahannya, dan tentu saja setiap usaha pasti ada hasilnya. Asal Anda tahu apa yang harus dilakukan, dan kenapa masalah itu terjadi, pemecahan sudah ada di tangan. Anda tinggal menggerakkan diri, perangi segala kemalasan yang membawa kerugian itu.",
-    "D12": "Susah tidur atau Insomnia adalah paduan dari gejala dan akibat dari depresi dan kegelisahan. Karena otak menggunakan ‘sinyal’ serupa untuk mengatur jadwal tidur dan emosi, sangat sulit untuk menentukan mana yang harus dimunculkan lebih dulu.",
-    "D13": "Pikirkan bagaimana rasa malas ini mempengaruhi kualitas hidup Anda, hubungan Anda, membuat Anda kehilangan kesempatan, kesehatan dan energi yang memburuk. Lalu buat daftar apa saja yang dapat Anda lakukan . Jangan biarkan diri anda tersikasa, anda masih dibutuhkan banyak orang.",
-    "D14": "Anda harus belajar untuk mendorong diri sendiri untuk membatasi. Jika Anda menemukan konsentrasi Anda, lakukan trik sederhana tapi manjur ini. Ambillah nafas dalam-dalam dan perlahan. Ketika Anda mengambil nafas seperti itu, seketika itu juga otak Anda terstimulasi masuk pada frekwensi Low beta.",
-    "D15": "Kelelahan anda muncul disebabkan karena pikiran anda yang lelah untuk memikirkan masalah ini. Jadi, cobalah untuk menenangankan diri dangan istirahat atau dengan mencari tempat yang bisa membuat anda tenang untuk sementara waktu."
 };
 
 // Article details
@@ -110,104 +48,30 @@ export default function DiagnosisResult() {
         }
     };
 
-    const [rawAnswers, setRawAnswers] = useState(null);
+    const [apiResults, setApiResults] = useState(null);
     const [showDetails, setShowDetails] = useState(false);
-    const [calculations, setCalculations] = useState(null);
-    const [selectedDepresi, setSelectedDepresi] = useState(null);
     const [userInfo, setUserInfo] = useState(null);
 
+    const toggleDetails = () => {
+        console.log('Toggle clicked, current state:', showDetails);
+        setShowDetails(prev => {
+            console.log('Setting showDetails to:', !prev);
+            return !prev;
+        });
+    };
+
     useEffect(() => {
-        const saved = localStorage.getItem('depresicheck_answers');
+        const savedResults = localStorage.getItem('depresicheck_results');
         const savedInfo = localStorage.getItem('depresicheck_user_info');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            setRawAnswers(parsed);
-            calculateCF(parsed);
+        if (savedResults) {
+            setApiResults(JSON.parse(savedResults));
         }
         if (savedInfo) {
             setUserInfo(JSON.parse(savedInfo));
         }
     }, []);
 
-    const calculateCF = (answersList) => {
-        const userAnswersMap = {};
-        answersList.forEach(([code, val]) => {
-            userAnswersMap[code] = val;
-        });
-
-        const results = [];
-
-        Object.keys(DEPRESI_DICT).forEach((depresiCode) => {
-            const categoryRules = RULES.filter(r => r.kode_depresi === depresiCode);
-            const combinations = [];
-            const cfValues = [];
-
-            categoryRules.forEach((rule) => {
-                const userVal = userAnswersMap[rule.kode_gejala] !== undefined ? userAnswersMap[rule.kode_gejala] : 0.0;
-                const pakarWeight = rule.pakar_cf;
-                const combinedCF = pakarWeight * userVal;
-
-                // Include symptoms that are confirmed (val != 0)
-                if (userVal !== 0.0) {
-                    combinations.push({
-                        kode_gejala: rule.kode_gejala,
-                        gejala: GEJALA_DICT[rule.kode_gejala],
-                        pakar_cf: pakarWeight.toFixed(2),
-                        user_cf: userVal.toFixed(2),
-                        cf_i: combinedCF.toFixed(4)
-                    });
-                    cfValues.push(combinedCF);
-                }
-            });
-
-            // Combine Certainty Factors recursively
-            let combinedResult = 0;
-            const steps = [];
-            
-            if (cfValues.length > 0) {
-                combinedResult = cfValues[0];
-                steps.push(combinedResult);
-                
-                for (let i = 1; i < cfValues.length; i++) {
-                    const nextVal = cfValues[i];
-                    
-                    // Standard Certainty Factor combination formula supporting positive/negative/mixed values
-                    if (combinedResult >= 0 && nextVal >= 0) {
-                        combinedResult = combinedResult + nextVal * (1 - combinedResult);
-                    } else if (combinedResult < 0 && nextVal < 0) {
-                        combinedResult = combinedResult + nextVal * (1 + combinedResult);
-                    } else {
-                        combinedResult = (combinedResult + nextVal) / (1 - Math.min(Math.abs(combinedResult), Math.abs(nextVal)));
-                    }
-                    steps.push(combinedResult);
-                }
-            }
-
-            results.push({
-                kode_depresi: depresiCode,
-                depresi: DEPRESI_DICT[depresiCode].name,
-                value: combinedResult,
-                combinations,
-                steps
-            });
-        });
-
-        let highest = { value: -1 };
-        results.forEach((res) => {
-            if (res.value > highest.value) {
-                highest = res;
-            }
-        });
-
-        setCalculations({
-            results,
-            highest
-        });
-        
-        setSelectedDepresi(highest.kode_depresi);
-    };
-
-    if (!rawAnswers || !calculations) {
+    if (!apiResults || !apiResults.results || apiResults.results.length === 0) {
         return (
             <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-center items-center p-6">
                 <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl shadow-slate-200/50">
@@ -228,11 +92,10 @@ export default function DiagnosisResult() {
         );
     }
 
-    const { highest, results } = calculations;
-    const article = ARTICLES[highest.kode_depresi];
-
-    // Filter symptoms experienced by user (value > 0)
-    const experiencedSymptoms = rawAnswers.filter(([code, val]) => val > 0.0);
+    const highest = apiResults.results[0];
+    const results = apiResults.results;
+    const matchedSymptoms = apiResults.matched_symptoms;
+    const article = ARTICLES[highest.depression_level.code];
 
     return (
         <>
@@ -306,9 +169,9 @@ export default function DiagnosisResult() {
                             {/* Left: Score Circle */}
                             <div className="relative flex-shrink-0 w-36 h-36 rounded-full border-4 border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 shadow-inner">
                                 <div className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5 animate-pulse">Keyakinan</div>
-                                <div className="text-3xl font-black text-teal-605 dark:text-teal-400">{(highest.value * 100).toFixed(1)}%</div>
-                                <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-1">CF: {parseFloat(highest.value).toFixed(3)}</div>
-                                
+                                <div className="text-3xl font-black text-teal-605 dark:text-teal-400">{(highest.cf * 100).toFixed(1)}%</div>
+                                <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-1">CF: {parseFloat(highest.cf).toFixed(3)}</div>
+
                                 <svg className="absolute -inset-1 w-[152px] -rotate-90 pointer-events-none" viewBox="0 0 100 100">
                                     <circle
                                         cx="50"
@@ -318,7 +181,7 @@ export default function DiagnosisResult() {
                                         stroke="url(#tealGradient)"
                                         strokeWidth="4"
                                         strokeDasharray="289"
-                                        strokeDashoffset={289 - (289 * highest.value)}
+                                        strokeDashoffset={289 - (289 * highest.cf)}
                                         strokeLinecap="round"
                                     />
                                     <defs>
@@ -332,14 +195,14 @@ export default function DiagnosisResult() {
 
                             {/* Right: Diagnosis Category Details */}
                             <div className="text-center sm:text-left flex-grow">
-                                <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${DEPRESI_DICT[highest.kode_depresi]?.badgeColor || 'bg-teal-50 text-teal-700 border-teal-200'} mb-3`}>
-                                    {highest.kode_depresi} &bull; {DEPRESI_DICT[highest.kode_depresi]?.name}
+                                <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${DEPRESI_DICT[highest.depression_level.code]?.badgeColor || 'bg-teal-50 text-teal-700 border-teal-200'} mb-3`}>
+                                    {highest.depression_level.code} &bull; {DEPRESI_DICT[highest.depression_level.code]?.name}
                                 </div>
                                 <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-3">
-                                    {DEPRESI_DICT[highest.kode_depresi]?.name}
+                                    {highest.depression_level.name}
                                 </h2>
                                 <p className="text-slate-650 dark:text-slate-300 leading-relaxed text-sm sm:text-base">
-                                    Berdasarkan perhitungan Certainty Factor dari 15 butir gejala yang diinputkan, Anda diestimasikan berada dalam kategori <span className="text-teal-600 font-extrabold">{DEPRESI_DICT[highest.kode_depresi]?.name}</span> dengan tingkat kepastian <span className="text-teal-600 font-extrabold">{(highest.value * 100).toFixed(2)}%</span>.
+                                    Berdasarkan perhitungan Certainty Factor dari 15 butir gejala yang diinputkan, Anda diestimasikan berada dalam kategori <span className="text-teal-600 font-extrabold">{highest.depression_level.name}</span> dengan tingkat kepastian <span className="text-teal-600 font-extrabold">{(highest.cf * 100).toFixed(2)}%</span>.
                                 </p>
                             </div>
                         </div>
@@ -365,24 +228,23 @@ export default function DiagnosisResult() {
                     )}
 
                     {/* Personalized Suggestions (S) based on Symptoms */}
-                    {experiencedSymptoms.length > 0 && (
+                    {matchedSymptoms.length > 0 && (
                         <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-10 shadow-xl shadow-slate-200/20 dark:bg-slate-900 dark:border-slate-800 dark:shadow-none mb-8">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Saran Penanganan Berdasarkan Gejala Anda</h3>
                             <div className="space-y-6">
-                                {experiencedSymptoms.map(([code, val]) => {
-                                    const symptomName = GEJALA_DICT[code];
-                                    const suggestion = SUGGESTIONS[code];
+                                {matchedSymptoms.map((item) => {
+                                    const symptom = item.symptom;
                                     return (
-                                        <div key={code} className="flex gap-4 items-start p-4 bg-teal-500/[0.02] dark:bg-teal-500/[0.04] border border-teal-500/10 dark:border-teal-500/20 rounded-2xl">
+                                        <div key={symptom.id} className="flex gap-4 items-start p-4 bg-teal-500/[0.02] dark:bg-teal-500/[0.04] border border-teal-500/10 dark:border-teal-500/20 rounded-2xl">
                                             <div className="w-7 h-7 rounded-full bg-teal-500/10 text-teal-650 flex items-center justify-center text-xs font-bold font-mono flex-shrink-0">
-                                                {code}
+                                                {symptom.code}
                                             </div>
                                             <div>
                                                 <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">
-                                                    Mengalami {symptomName}
+                                                    Mengalami {symptom.name}
                                                 </h4>
                                                 <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-350 leading-relaxed">
-                                                    {suggestion}
+                                                    {symptom.suggestion}
                                                 </p>
                                             </div>
                                         </div>
@@ -396,7 +258,7 @@ export default function DiagnosisResult() {
                     <div className="mb-6 flex justify-between items-center">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white">Rincian Perhitungan Matematis</h3>
                         <button
-                            onClick={() => setShowDetails(!showDetails)}
+                            onClick={toggleDetails}
                             className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:border-slate-350 dark:bg-slate-900 dark:border-slate-800 dark:hover:bg-slate-750 dark:text-teal-400 shadow-sm transition text-xs font-bold flex items-center gap-2"
                         >
                             {showDetails ? 'Sembunyikan Rumus' : 'Tampilkan Perhitungan Pakar'}
@@ -408,31 +270,39 @@ export default function DiagnosisResult() {
 
                     {/* Detailed Math Calculations Box */}
                     {showDetails && (
-                        <div className="space-y-8 animate-fadeIn">
-                            
+                        <div className="space-y-8">
+                            <div className="bg-teal-50 dark:bg-teal-950/20 p-4 rounded-xl border border-teal-200 dark:border-teal-800">
+                                <p className="text-sm text-teal-800 dark:text-teal-300">
+                                    <strong>Debug Info:</strong> Results: {results?.length || 0}, Matched Symptoms: {matchedSymptoms?.length || 0}
+                                </p>
+                            </div>
+
                             {/* Summary list of CFs */}
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {results.map((res) => {
-                                    const isWinner = res.kode_depresi === highest.kode_depresi;
+                                {results && results.length > 0 ? results.map((res) => {
+                                    const isWinner = res.depression_level.code === highest.depression_level.code;
+                                    const depresiInfo = DEPRESI_DICT[res.depression_level.code];
                                     return (
-                                        <div key={res.kode_depresi} className={`p-4 rounded-2xl border ${
+                                        <div key={res.depression_level.code} className={`p-4 rounded-2xl border ${
                                             isWinner ? 'bg-teal-50/30 border-teal-300 dark:bg-teal-950/20 dark:border-teal-800' : 'bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none'
                                         }`}>
-                                            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{res.kode_depresi}</div>
-                                            <div className="font-extrabold text-sm text-slate-800 dark:text-white truncate">{res.depresi}</div>
+                                            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{res.depression_level.code}</div>
+                                            <div className="font-extrabold text-sm text-slate-800 dark:text-white truncate">{depresiInfo?.name || res.depression_level.name}</div>
                                             <div className={`text-xl font-black mt-1 ${isWinner ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                                                {(res.value * 100).toFixed(1)}%
+                                                {(res.cf * 100).toFixed(1)}%
                                             </div>
                                         </div>
                                     );
-                                })}
+                                }) : (
+                                    <div className="col-span-3 text-center text-slate-400">No results available</div>
+                                )}
                             </div>
 
                             {/* Chosen Category Table Calculation */}
                             <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/10 dark:shadow-none">
                                 <div className="p-5 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-850 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
                                     <div className="font-bold text-slate-800 dark:text-white text-sm">
-                                        Matriks Gejala & CF Kombinasi untuk <span className="text-teal-600 dark:text-teal-400">{DEPRESI_DICT[highest.kode_depresi]?.name}</span>
+                                        Matriks Gejala & CF Kombinasi untuk <span className="text-teal-600 dark:text-teal-400">{DEPRESI_DICT[highest.depression_level.code]?.name}</span>
                                     </div>
                                     <span className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800 px-2 py-0.5 rounded self-start">
                                         Formula: CF_i = CF_pakar * CF_user
@@ -451,16 +321,18 @@ export default function DiagnosisResult() {
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-                                            {highest.combinations.map((comb) => (
-                                                <tr key={comb.kode_gejala} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/50">
-                                                    <td className="px-6 py-4 font-mono font-bold text-teal-600 dark:text-teal-400">{comb.kode_gejala}</td>
-                                                    <td className="px-6 py-4 max-w-xs truncate">{comb.gejala}</td>
-                                                    <td className="px-6 py-4 text-center font-mono">{comb.pakar_cf}</td>
-                                                    <td className="px-6 py-4 text-center font-mono text-emerald-600 dark:text-emerald-400 font-bold">{comb.user_cf}</td>
-                                                    <td className="px-6 py-4 text-right font-mono font-bold text-teal-600 dark:text-teal-400">{comb.cf_i}</td>
-                                                </tr>
-                                            ))}
-                                            {highest.combinations.length === 0 && (
+                                            {matchedSymptoms && matchedSymptoms.length > 0 ? matchedSymptoms.map((item) => {
+                                                const symptom = item.symptom;
+                                                return (
+                                                    <tr key={symptom.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/50">
+                                                        <td className="px-6 py-4 font-mono font-bold text-teal-600 dark:text-teal-400">{symptom.code}</td>
+                                                        <td className="px-6 py-4 max-w-xs truncate">{symptom.name}</td>
+                                                        <td className="px-6 py-4 text-center font-mono">{symptom.expert_cf.toFixed(2)}</td>
+                                                        <td className="px-6 py-4 text-center font-mono text-emerald-600 dark:text-emerald-400 font-bold">{item.user_cf.toFixed(2)}</td>
+                                                        <td className="px-6 py-4 text-right font-mono font-bold text-teal-600 dark:text-teal-400">{item.calculated_cf.toFixed(4)}</td>
+                                                    </tr>
+                                                );
+                                            }) : (
                                                 <tr>
                                                     <td colSpan="5" className="px-6 py-10 text-center text-slate-400 dark:text-slate-600">
                                                         Tidak ada gejala yang cocok terdeteksi untuk penyakit ini.
@@ -473,30 +345,33 @@ export default function DiagnosisResult() {
                             </div>
 
                             {/* Sequential Combinations Steps */}
-                            {highest.steps.length > 1 && (
+                            {matchedSymptoms && matchedSymptoms.length > 1 && (
                                 <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl shadow-slate-200/10 dark:shadow-none">
                                     <h4 className="font-bold text-slate-900 dark:text-white text-sm mb-4">Penggabungan Certainty Factor Berurutan (CF_combine)</h4>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                                        Menggabungkan CF_i dari masing-masing gejala secara rekursif menggunakan rumus: 
+                                        Menggabungkan CF_i dari masing-masing gejala secara rekursif menggunakan rumus:
                                         <br />
                                         <code className="text-teal-600 dark:text-teal-450 font-mono font-semibold block my-1">CF_gabungan = CF_old + CF_new * (1 - CF_old)</code>
                                     </p>
-                                    
+
                                     <div className="font-mono text-xs text-slate-650 dark:text-slate-350 space-y-2 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                                        <div>Step 1 (Inisial CF_1): <span className="text-teal-600 dark:text-teal-400 font-bold">{highest.combinations[0]?.cf_i}</span></div>
-                                        {highest.steps.slice(1).map((step, idx) => {
-                                            const nextComb = highest.combinations[idx + 1];
-                                            const prevStep = highest.steps[idx];
+                                        <div>Step 1 (Inisial CF_1): <span className="text-teal-600 dark:text-teal-400 font-bold">{matchedSymptoms[0]?.calculated_cf.toFixed(4)}</span></div>
+                                        {matchedSymptoms.slice(1).map((item, idx) => {
+                                            const currentCf = item.calculated_cf;
+                                            const prevCf = matchedSymptoms[idx].calculated_cf;
+                                            const combinedCf = prevCf + currentCf * (1 - prevCf);
                                             return (
-                                                <div key={idx} className="border-t border-slate-200 dark:border-slate-800 pt-2 mt-2">
-                                                    <div>Step {idx + 2} (Gabungkan dengan {nextComb?.kode_gejala}):</div>
+                                                <div key={item.symptom.id} className="border-t border-slate-200 dark:border-slate-800 pt-2 mt-2">
+                                                    <div>Step {idx + 2} (Gabungkan dengan {item.symptom.code}):</div>
                                                     <div className="text-[10px] text-slate-400 dark:text-slate-500">
-                                                        CF_gabungan = {prevStep.toFixed(5)} + ({nextComb?.cf_i} * (1 - {prevStep.toFixed(5)}))
+                                                        CF_gabungan = {prevCf.toFixed(5)} + ({currentCf.toFixed(5)} * (1 - {prevCf.toFixed(5)})) = {combinedCf.toFixed(5)}
                                                     </div>
-                                                    <div className="text-teal-600 dark:text-teal-400 font-bold">CF_gabungan = {step.toFixed(6)} ({(step * 100).toFixed(2)}%)</div>
                                                 </div>
                                             );
                                         })}
+                                        <div className="border-t border-slate-200 dark:border-slate-800 pt-2 mt-2 font-bold text-teal-600 dark:text-teal-400">
+                                            Hasil Akhir CF: {highest.cf.toFixed(5)}
+                                        </div>
                                     </div>
                                 </div>
                             )}

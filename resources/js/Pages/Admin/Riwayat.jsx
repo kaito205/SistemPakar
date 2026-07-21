@@ -1,84 +1,8 @@
 import React, { useState } from "react";
 import AppLayout from "@/Layouts/admin/AppLayout";
-import { Head } from "@inertiajs/react";
+import { Head, router } from "@inertiajs/react";
 
-// Mock diagnostic logs database representing test history
-const INITIAL_LOGS = [
-  {
-    id: 101,
-    name: "Ahmad Faisal",
-    email: "faisal@mahasiswa.univ.ac.id",
-    date: "14 Juli 2026, 17:05",
-    score: 84.3,
-    level: "Depresi Sedang (M2)",
-    type: "M2",
-    answers: { D1: 0.8, D3: 0.6, D5: 0.8, D8: 0.4, D11: 0.6, D14: 0.8, D15: 0.8 },
-    suggestions: [
-      "Cobalah menulis buku harian emosi untuk melepaskan beban pikiran.",
-      "Lakukan konseling dengan konselor sebaya atau dosen pembimbing.",
-      "Susun jadwal harian yang realistis dan jangan menuntut diri terlalu keras."
-    ]
-  },
-  {
-    id: 102,
-    name: "Siti Rahmawati",
-    email: "siti.rahma@mahasiswa.univ.ac.id",
-    date: "14 Juli 2026, 16:12",
-    score: 92.1,
-    level: "Depresi Berat (M3)",
-    type: "M3",
-    answers: { D1: 1.0, D3: 0.8, D4: 0.8, D7: 0.6, D9: 0.8, D11: 1.0, D12: 0.8, D15: 0.8 },
-    suggestions: [
-      "Sangat disarankan segera menjadwalkan sesi dengan psikolog profesional.",
-      "Bicarakan kondisi ini dengan keluarga dekat atau teman tepercaya.",
-      "Hindari mengisolasi diri, tetaplah berada di lingkungan yang aman."
-    ]
-  },
-  {
-    id: 103,
-    name: "Budi Santoso",
-    email: "budi.s@mahasiswa.univ.ac.id",
-    date: "13 Juli 2026, 21:40",
-    score: 42.0,
-    level: "Depresi Ringan (M1)",
-    type: "M1",
-    answers: { D2: 0.6, D13: 0.8 },
-    suggestions: [
-      "Lakukan olahraga ringan secara rutin 3 kali seminggu.",
-      "Perbaiki pola makan dengan gizi seimbang secara teratur."
-    ]
-  },
-  {
-    id: 104,
-    name: "Dina Lestari",
-    email: "dina.l@mahasiswa.univ.ac.id",
-    date: "13 Juli 2026, 11:15",
-    score: 58.5,
-    level: "Depresi Sedang (M2)",
-    type: "M2",
-    answers: { D1: 0.6, D5: 0.8, D10: 0.6, D11: 0.6, D12: 0.8, D15: 0.6 },
-    suggestions: [
-      "Coba teknik relaksasi pernapasan dalam setiap kali merasa cemas.",
-      "Kurangi konsumsi kafein dan buat rutinitas tidur yang tenang."
-    ]
-  },
-  {
-    id: 105,
-    name: "Rian Hidayat",
-    email: "rian.h@mahasiswa.univ.ac.id",
-    date: "12 Juli 2026, 09:30",
-    score: 18.2,
-    level: "Normal (Tidak Depresi)",
-    type: "Normal",
-    answers: { D1: 0.4, D11: 0.2 },
-    suggestions: [
-      "Pertahankan gaya hidup sehat dan aktivitas positif Anda."
-    ]
-  }
-];
-
-export default function Riwayat() {
-  const [logs, setLogs] = useState(INITIAL_LOGS);
+export default function Riwayat({ logs = [] }) {
   const [selectedLog, setSelectedLog] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -94,10 +18,27 @@ export default function Riwayat() {
     setSelectedLog(null);
   };
 
-  const handleDelete = (id) => {
-    if (confirm(`Apakah Anda yakin ingin menghapus log diagnosa #${id}?`)) {
-      setLogs(logs.filter((log) => log.id !== id));
-    }
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleteIndex, setDeleteIndex] = useState("");
+  const [deleteName, setDeleteName] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const handleDelete = (id, number, name) => {
+    setDeleteId(id);
+    setDeleteIndex(number);
+    setDeleteName(name);
+    setIsDeleteModalOpen(true);
+  };
+
+  const executeDelete = () => {
+    router.delete(`/admin/riwayat/${deleteId}`, {
+      onSuccess: () => {
+        setIsDeleteModalOpen(false);
+        setDeleteId(null);
+        setDeleteIndex("");
+        setDeleteName("");
+      }
+    });
   };
 
   // Filter & Search logic
@@ -163,7 +104,7 @@ export default function Riwayat() {
           <table className="w-full border-collapse text-left text-sm text-slate-500 dark:text-slate-400">
             <thead className="bg-slate-50 dark:bg-slate-800/40 text-xs uppercase text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800">
               <tr>
-                <th scope="col" className="px-6 py-4 font-bold w-[120px]">ID Log</th>
+                <th scope="col" className="px-6 py-4 font-bold w-[80px]">No</th>
                 <th scope="col" className="px-6 py-4 font-bold w-[240px]">Mahasiswa</th>
                 <th scope="col" className="px-6 py-4 font-bold w-[180px]">Tanggal Tes</th>
                 <th scope="col" className="px-6 py-4 font-bold w-[120px]">Skor CF</th>
@@ -179,10 +120,10 @@ export default function Riwayat() {
                   </td>
                 </tr>
               ) : (
-                filteredLogs.map((log) => (
+                filteredLogs.map((log, index) => (
                   <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                    <td className="px-6 py-4 font-mono font-bold text-slate-400">
-                      #{log.id}
+                    <td className="px-6 py-4 font-bold text-slate-550 dark:text-slate-400 font-mono">
+                      {index + 1}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-col">
@@ -218,7 +159,7 @@ export default function Riwayat() {
                           Detail
                         </button>
                         <button
-                          onClick={() => handleDelete(log.id)}
+                          onClick={() => handleDelete(log.id, index + 1, log.name)}
                           className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-350 font-semibold"
                         >
                           Hapus
@@ -314,6 +255,42 @@ export default function Riwayat() {
                 className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm transition-all focus:outline-none"
               >
                 Tutup Rincian
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Delete Confirmation Modal */}
+      {isDeleteModalOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-2xl dark:bg-slate-900 dark:border-slate-800 p-6">
+            <div className="flex items-center gap-4 mb-4">
+              <span className="p-3 rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 shrink-0">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </span>
+              <div>
+                <h3 className="text-lg font-bold text-slate-850 dark:text-white">Konfirmasi Hapus</h3>
+                <p className="text-xs text-slate-400 dark:text-slate-500">Tindakan ini tidak dapat dibatalkan.</p>
+              </div>
+            </div>
+            <p className="text-sm text-slate-600 dark:text-slate-350 leading-relaxed mb-6">
+              Apakah Anda yakin ingin menghapus data diagnosa <span className="font-extrabold text-slate-850 dark:text-white">"No. {deleteIndex} ({deleteName})"</span>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setIsDeleteModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-850 transition cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                onClick={executeDelete}
+                className="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm shadow-lg shadow-rose-500/20 transition cursor-pointer"
+              >
+                Ya, Hapus
               </button>
             </div>
           </div>
