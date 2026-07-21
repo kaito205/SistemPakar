@@ -2,7 +2,56 @@ import React, { useState } from "react";
 import AppLayout from "@/Layouts/admin/AppLayout";
 import { Head, router } from "@inertiajs/react";
 
+<<<<<<< HEAD
 export default function Aturan({ dbSymptoms = [], dbRules = [] }) {
+=======
+// List of all 15 symptoms for reference in the rule-builder checklist
+const ALL_SYMPTOMS = [
+  { code: "D1", name: "Kesedihan", weight: 1.0 },
+  { code: "D2", name: "Pesimis", weight: 0.2 },
+  { code: "D3", name: "Kegagalan", weight: 0.2 },
+  { code: "D4", name: "Kehilangan Kenikmatan", weight: 0.8 },
+  { code: "D5", name: "Perasaan Bersalah", weight: 0.2 },
+  { code: "D6", name: "Perasaan Dihukum", weight: 0.2 },
+  { code: "D7", name: "Pikiran Bunuh Diri", weight: 0.6 },
+  { code: "D8", name: "Gelisah", weight: 0.2 },
+  { code: "D9", name: "Kehilangan Ketertarikan", weight: 0.6 },
+  { code: "D10", name: "Keraguan", weight: 0.2 },
+  { code: "D11", name: "Kehilangan Energi", weight: 0.2 },
+  { code: "D12", name: "Perubahan Pola Tidur", weight: 0.2 },
+  { code: "D13", name: "Perubahan Nafsu Makan", weight: 0.2 },
+  { code: "D14", name: "Sulit Konsentrasi", weight: 0.2 },
+  { code: "D15", name: "Kelelahan", weight: 0.2 }
+];
+
+// Initial rules dataset from the research paper
+const INITIAL_RULES = [
+  {
+    code: "M1",
+    name: "Depresi Ringan",
+    symptoms: ["D2", "D13"],
+    color: "teal",
+    description: "Kondisi depresi ringan yang umumnya dipicu oleh kejadian penuh stres spesifik. Ditandai dengan munculnya sekitar 2 hingga 5 gejala pemicu ringan."
+  },
+  {
+    code: "M2",
+    name: "Depresi Sedang",
+    symptoms: ["D1", "D3", "D5", "D6", "D8", "D10", "D11", "D12", "D14", "D15"],
+    color: "amber",
+    description: "Kondisi depresi sedang dengan gejala yang berlangsung lebih konsisten, mempengaruhi aktivitas sosial harian, dan disertai simtom fisik."
+  },
+  {
+    code: "M3",
+    name: "Depresi Berat",
+    symptoms: ["D4", "D7", "D9"],
+    color: "rose",
+    description: "Tingkat depresi berat yang mengganggu fungsi kehidupan vital dasar (seperti sulit tidur, nafsu makan hilang, atau munculnya pikiran melukai diri)."
+  }
+];
+
+export default function Aturan({ rulesList }) {
+  const [rules, setRules] = useState(rulesList || INITIAL_RULES);
+>>>>>>> bcae1534fe7ce13ce61724b60568e7f51424eb73
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeRule, setActiveRule] = useState(null);
   
