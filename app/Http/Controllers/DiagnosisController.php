@@ -160,17 +160,42 @@ class DiagnosisController extends Controller
 
     private function calculateRuleCf(array $symptomCfs, string $logic): float
     {
-        if ($logic === 'AND') {
-            return min($symptomCfs);
-        } elseif ($logic === 'OR') {
-            return max($symptomCfs);
+        if (empty($symptomCfs)) {
+            return 0.0;
         }
-        
-        return min($symptomCfs);
+
+        // According to the Certainty Factor research paper, symptom CFs 
+        // are combined using the CF combination formula recursively.
+        $combined = $symptomCfs[0];
+        for ($i = 1; $i < count($symptomCfs); $i++) {
+            $next = $symptomCfs[$i];
+            
+            if ($combined >= 0 && $next >= 0) {
+                $combined = $combined + $next * (1 - $combined);
+            } elseif ($combined < 0 && $next < 0) {
+                $combined = $combined + $next * (1 + $combined);
+            } else {
+                $denom = 1 - min(abs($combined), abs($next));
+                if ($denom == 0) {
+                    $combined = 1.0;
+                } else {
+                    $combined = ($combined + $next) / $denom;
+                }
+            }
+        }
+
+        return $combined;
     }
 
     private function combineCf(float $oldCf, float $newCf): float
     {
-        return $oldCf + $newCf * (1 - $oldCf);
+        if ($oldCf >= 0 && $newCf >= 0) {
+            return $oldCf + $newCf * (1 - $oldCf);
+        } elseif ($oldCf < 0 && $newCf < 0) {
+            return $oldCf + $newCf * (1 + $oldCf);
+        } else {
+            $denom = 1 - min(abs($oldCf), abs($newCf));
+            return $denom == 0 ? 1.0 : ($oldCf + $newCf) / $denom;
+        }
     }
 }

@@ -2,31 +2,7 @@ import React, { useState } from "react";
 import AppLayout from "@/Layouts/admin/AppLayout";
 import { Head, router } from "@inertiajs/react";
 
-<<<<<<< HEAD
 export default function Gejala({ symptoms = [] }) {
-=======
-// Initial list of the 15 symptoms from the research paper
-const INITIAL_GEJALA = [
-  { code: "D1", name: "Kesedihan", weight: 1.0, desc: "Perasaan sedih, muram, atau hampa yang terus-menerus dirasakan." },
-  { code: "D2", name: "Pesimis", weight: 0.2, desc: "Memandang masa depan secara suram dan merasa tidak ada harapan." },
-  { code: "D3", name: "Kegagalan", weight: 0.2, desc: "Merasa sering gagal dalam hidup atau tidak berguna bagi orang lain." },
-  { code: "D4", name: "Kehilangan Kenikmatan", weight: 0.8, desc: "Hilangnya minat atau kesenangan dalam aktivitas sehari-hari." },
-  { code: "D5", name: "Perasaan Bersalah", weight: 0.2, desc: "Sering menyalahkan diri sendiri atas berbagai hal secara berlebihan." },
-  { code: "D6", name: "Perasaan Dihukum", weight: 0.2, desc: "Merasa sedang menerima hukuman atas kesalahan masa lalu." },
-  { code: "D7", name: "Pikiran Bunuh Diri", weight: 0.6, desc: "Munculnya pikiran menyakiti diri sendiri atau mengakhiri hidup." },
-  { code: "D8", name: "Gelisah", weight: 0.2, desc: "Perasaan cemas, tegang, dan ketidakmampuan untuk relaks." },
-  { code: "D9", name: "Kehilangan Ketertarikan", weight: 0.6, desc: "Kehilangan minat untuk bersosialisasi atau berinteraksi dengan lingkungan sekitar." },
-  { code: "D10", name: "Keraguan", weight: 0.2, desc: "Kesulitan mengambil keputusan, bahkan untuk hal sederhana sekalipun." },
-  { code: "D11", name: "Kehilangan Energi", weight: 0.2, desc: "Rasa tidak berenergi dan lemas berkepanjangan sepanjang hari." },
-  { code: "D12", name: "Perubahan Pola Tidur", weight: 0.2, desc: "Gangguan tidur berupa insomnia (sulit tidur) atau hipersomnia (tidur berlebih)." },
-  { code: "D13", name: "Perubahan Nafsu Makan", weight: 0.2, desc: "Nafsu makan berkurang secara drastis atau meningkat secara signifikan." },
-  { code: "D14", name: "Sulit Konsentrasi", weight: 0.2, desc: "Susah memfokuskan pikiran saat belajar, membaca, atau bekerja." },
-  { code: "D15", name: "Kelelahan", weight: 0.2, desc: "Rasa lelah fisik dan mental yang sangat nyata meskipun tanpa aktivitas berat." }
-];
-
-export default function Gejala({ gejalas }) {
-  const [gejalaList, setGejalaList] = useState(gejalas || INITIAL_GEJALA);
->>>>>>> bcae1534fe7ce13ce61724b60568e7f51424eb73
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   
