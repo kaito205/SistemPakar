@@ -2,22 +2,26 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Rule extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'depression_level_id',
-        'symptom_ids',
-        'logic',
+        'disease_id',
+        'symptom_id',
+        'cf_pakar',
     ];
 
-    protected $casts = [
-        'symptom_ids' => 'array',
-    ];
-
-    public function depressionLevel()
+    public function disease()
     {
-        return $this->belongsTo(DepressionLevel::class);
+        return $this->belongsTo(Disease::class);
+    }
+
+    public function symptom()
+    {
+        return $this->belongsTo(Symptom::class);
     }
 }

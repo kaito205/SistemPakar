@@ -2,18 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Symptom extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'code',
         'name',
-        'expert_cf',
-        'suggestion',
+        'description',
     ];
 
-    protected $casts = [
-        'expert_cf' => 'decimal:2',
-    ];
+    public function rules()
+    {
+        return $this->hasMany(Rule::class);
+    }
 }

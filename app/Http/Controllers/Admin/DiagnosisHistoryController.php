@@ -18,13 +18,13 @@ class DiagnosisHistoryController extends Controller
             return [
                 'id' => $log->id,
                 'name' => $log->nama,
-                'email' => "NIM: {$log->nim} • {$log->prodi} ({$log->angkatan})",
+                'identity' => ($log->nim && $log->nim !== '-') ? "NIM: {$log->nim} • {$log->prodi} ({$log->angkatan})" : "Pengunjung Umum",
                 'date' => $log->created_at->translatedFormat('d F Y, H:i'),
                 'score' => (float)$log->score,
-                'level' => $log->level_name,
-                'type' => $log->level_code,
+                'disease_name' => $log->disease_name,
+                'disease_code' => $log->disease_code,
                 'answers' => $log->answers ?: [],
-                'suggestions' => $log->suggestions ?: [],
+                'solutions' => $log->solutions ?: [],
             ];
         });
 
@@ -38,6 +38,6 @@ class DiagnosisHistoryController extends Controller
         $diagnosis = Diagnosis::findOrFail($id);
         $diagnosis->delete();
 
-        return redirect()->back()->with('success', 'Log diagnosa berhasil dihapus.');
+        return redirect()->back()->with('success', 'Log riwayat diagnosa berhasil dihapus.');
     }
 }

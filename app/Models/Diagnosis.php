@@ -2,35 +2,35 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Diagnosis extends Model
 {
-    protected $table = 'diagnoses';
+    use HasFactory;
 
     protected $fillable = [
         'nama',
         'nim',
         'prodi',
         'angkatan',
-        'depression_level_id',
+        'disease_id',
         'score',
-        'level_name',
-        'level_code',
+        'disease_name',
+        'disease_code',
         'answers',
-        'suggestions',
+        'solutions',
         'is_read',
     ];
 
     protected $casts = [
         'answers' => 'array',
-        'suggestions' => 'array',
-        'score' => 'float',
+        'solutions' => 'array',
         'is_read' => 'boolean',
     ];
 
-    public function depressionLevel()
+    public function disease()
     {
-        return $this->belongsTo(DepressionLevel::class);
+        return $this->belongsTo(Disease::class);
     }
 }

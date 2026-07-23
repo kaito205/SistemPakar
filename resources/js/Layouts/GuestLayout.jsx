@@ -10,13 +10,13 @@ export default function GuestLayout({ children }) {
           {/* Brand Logo & Name */}
           <div className="flex flex-col items-center mb-8">
             <Link href="/" className="inline-flex items-center gap-3 group">
-              <img
-                src="/img/logo.png?v=2"
-                alt="DepresiCheck Logo"
-                className="w-12 h-12 object-contain group-hover:scale-105 transition"
-              />
-              <span className="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-teal-600 to-cyan-500 dark:from-teal-400 dark:to-cyan-300 bg-clip-text text-transparent">
-                DepresiCheck
+              <div className="w-12 h-12 rounded-2xl bg-teal-600 flex items-center justify-center text-white shadow-lg shadow-teal-600/30 group-hover:scale-105 transition">
+                <svg className="w-6 h-6 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.12a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+              </div>
+              <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                Diabe<span className="text-teal-600 dark:text-teal-400">CF</span>
               </span>
             </Link>
           </div>
@@ -38,21 +38,16 @@ export default function GuestLayout({ children }) {
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:24px_24px]"></div>
 
         <div className="relative z-10 max-w-md text-center px-8 text-white flex flex-col items-center">
-          <img
-            src="/img/logo.png?v=2"
-            alt="DepresiCheck Logo"
-            className="w-24 h-24 object-contain brightness-0 invert mb-8 animate-bounce-slow"
-            style={{
-              animation: "bounce 4s ease-in-out infinite",
-            }}
-          />
+          <div className="w-20 h-20 rounded-3xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white mb-8 shadow-2xl">
+            <svg className="w-10 h-10 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.12a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+            </svg>
+          </div>
           <h2 className="text-3xl font-extrabold tracking-wide mb-4">
-            Sistem Pakar Diagnosa Depresi
+            Sistem Pakar Diagnosa Diabetes Melitus
           </h2>
-          <p className="text-teal-150 text-sm sm:text-base font-medium leading-relaxed">
-            Mendukung kesehatan mental mahasiswa tingkat akhir melalui evaluasi
-            klinis mandiri menggunakan metode Certainty Factor (CF) secara cepat
-            dan akurat.
+          <p className="text-teal-100 text-sm sm:text-base font-medium leading-relaxed">
+            Membantu deteksi risiko Diabetes Melitus Tipe 1 dan Tipe 2 secara mandiri menggunakan metode Certainty Factor (CF) secara cepat dan akurat.
           </p>
         </div>
       </div>

@@ -3,111 +3,48 @@
 namespace Database\Seeders;
 
 use App\Models\Symptom;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Schema;
 
 class SymptomSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
+        Schema::disableForeignKeyConstraints();
+        Symptom::truncate();
+        Schema::enableForeignKeyConstraints();
+
         $symptoms = [
-            [
-                'code' => 'D1',
-                'name' => 'Kesedihan',
-                'expert_cf' => 1.0,
-                'suggestion' => 'Cobalah untuk menyadari bahwa semua orang pada saat yang berbeda juga mengalami hal yang sama seperti Anda rasakan. Yakinkan diri, cepat atau lambat kesedihan ini akan berakhir.',
-            ],
-            [
-                'code' => 'D2',
-                'name' => 'Pesimis',
-                'expert_cf' => 0.2,
-                'suggestion' => 'Saat keyakinan sudah mantap dalam hati, maka dia akan begitu semangat dalam berikhtiar, optimis, dan menyongsong masa depan yang lebih baik. Masa lalu boleh kelabu. Saat ini mungkin banyak masalah. Tetapi, tidak ada alasan kalau besok akan tetap seperti ini.',
-            ],
-            [
-                'code' => 'D3',
-                'name' => 'Kegagalan',
-                'expert_cf' => 0.8,
-                'suggestion' => 'Bersyukurlah jika anda mengalami kegagalan atau kemalangan. Karena dengan kegagalan anda sedang disiapkan untuk meraih kesuksesan yang lebih besar. Anda akan ditempa untuk menjadi lebih kuat dari sebelumnya.',
-            ],
-            [
-                'code' => 'D4',
-                'name' => 'Kehilangan Kenikmatan',
-                'expert_cf' => 0.5,
-                'suggestion' => 'Mencobalah untuk membuka diri dan menerima masukan dari orang lain, tujuan nya agar kita tidak selalu terdiam karena terpikir sutu masalah.',
-            ],
-            [
-                'code' => 'D5',
-                'name' => 'Perasaan Bersalah',
-                'expert_cf' => 0.4,
-                'suggestion' => 'Perasaan bersalah muncul karena merasa Tertekan karena Berbagai Kewajiban Dalam penyusunan skripsi, dengan ini cobalah anda untuk mencoba dan berpikir positif dan terus mencoba.',
-            ],
-            [
-                'code' => 'D6',
-                'name' => 'Perasaan Dihukum',
-                'expert_cf' => 0.3,
-                'suggestion' => 'Perasaan dihukum muncul karena berawalkan dari kegagalan yang pernah anda alami secara terus menerus, untuk menetralisir itu perlu adanya dukungan dari orang lain, berusahalah terus karena sejatinya itu adalah ujian hidup yang harus anda lewati.',
-            ],
-            [
-                'code' => 'D7',
-                'name' => 'Pikiran Bunuh Diri',
-                'expert_cf' => 0.8,
-                'suggestion' => 'Gunakan kesadaran Anda sebagai manusia utuh. Daripada memikirkan masalah atau pemecahannya, lebih baik kita bergerak ke jalan yang baru: jangan pikirkan masalah itu dulu. Dengan menggunakan kesadaran yang kita miliki, kita harus mengabaikan pikiran yang mengatakan bahwa situasi yang sedang kita hadapi itu sangat "complicated". Ingat bahwa pikiran bukanlah diri kita yang sebenarnya. Dengan prinsip ini, gunakanlah kesadaran kita yang sepenuhnya sebagai ciptaan Allah yang utuh Intinya, kesadaran Anda harus mampu mengatakan, "Ini dapat diatasi".',
-            ],
-            [
-                'code' => 'D8',
-                'name' => 'Gelisah',
-                'expert_cf' => 0.8,
-                'suggestion' => 'Tantangan, pada hakikatnya bukan untuk dihindari, melainkan justru untuk dilakoni. Hidup itu sendiri adalah tantangan, adalah masalah. Mengapa kita mesti menghindar? Di sinilah kadang-kadang kita lupa pada kesejatian diri. Selalu berusaha dan katakan dalam hati ini pasti berahir dengan.',
-            ],
-            [
-                'code' => 'D9',
-                'name' => 'Kehilangan Ketertarikan',
-                'expert_cf' => 1.0,
-                'suggestion' => 'Jangan selalu terdiam karena masalah yang ini, masih banyak yang harus anda lakukan cobalah bangkit "anda masih di tunggu" bangkitlah sekarang!!',
-            ],
-            [
-                'code' => 'D10',
-                'name' => 'Keraguan',
-                'expert_cf' => 1.0,
-                'suggestion' => 'Sebetulnya, semangat yang kuat itu diperlukan untuk mengatasi semua keraguan dan cobaan yang bisa mematikan kesungguhannya untuk mencapai hal-hal penting atau besar yang diinginkannya.',
-            ],
-            [
-                'code' => 'D11',
-                'name' => 'Kehilangan Energi',
-                'expert_cf' => 0.3,
-                'suggestion' => 'Yang pasti, setiap masalah yang nyata, pasti ada pemecahannya, dan tentu saja setiap usaha pasti ada hasilnya. Asal Anda tahu apa yang harus dilakukan, dan kenapa masalah itu terjadi, pemecahan sudah ada di tangan. Anda tinggal menggerakkan diri, perangi segala kemalasan yang membawa kerugian itu.',
-            ],
-            [
-                'code' => 'D12',
-                'name' => 'Perubahan Pola Tidur',
-                'expert_cf' => 0.8,
-                'suggestion' => 'Susah tidur atau Insomnia adalah paduan dari gejala dan akibat dari depresi dan kegelisahan. Karena otak menggunakan "sinyal" serupa untuk mengatur jadwal tidur dan emosi, sangat sulit untuk menentukan mana yang harus dimunculkan lebih dulu.',
-            ],
-            [
-                'code' => 'D13',
-                'name' => 'Perubahan Nafsu Makan',
-                'expert_cf' => 1.0,
-                'suggestion' => 'Pikirkan bagaimana rasa malas ini mempengaruhi kualitas hidup Anda, hubungan Anda, membuat Anda kehilangan kesempatan, kesehatan dan energi yang memburuk. Lalu buat daftar apa saja yang dapat Anda lakukan. Jangan biarkan diri anda tersiksa, anda masih dibutuhkan banyak orang.',
-            ],
-            [
-                'code' => 'D14',
-                'name' => 'Sulit Konsentrasi',
-                'expert_cf' => 0.4,
-                'suggestion' => 'Anda harus belajar untuk mendorong diri sendiri untuk membatasi. Jika Anda menemukan konsentrasi Anda, lakukan trik sederhana tapi manjur ini. Ambillah nafas dalam-dalam dan perlahan. Ketika Anda mengambil nafas seperti itu, seketika itu juga otak Anda terstimulasi masuk pada frekwensi Low beta.',
-            ],
-            [
-                'code' => 'D15',
-                'name' => 'Kelelahan',
-                'expert_cf' => 0.2,
-                'suggestion' => 'Kelelahan anda muncul disebabkan karena pikiran anda yang lelah untuk memikirkan masalah ini. Jadi, cobalah untuk menenangankan diri dangan istirahat atau dengan mencari tempat yang bisa membuat anda tenang untuk sementara waktu.',
-            ],
+            ['code' => 'G001', 'name' => 'Sering buang air kecil (poliuri)', 'description' => 'Kondisi sering buang air kecil terutama di malam hari akibat kadar glukosa tinggi dalam darah.'],
+            ['code' => 'G002', 'name' => 'Sering merasa lapar (polifagi)', 'description' => 'Keadaan sering merasa lapar akibat sel tubuh gagal mendapatkan pasokan glukosa yang cukup.'],
+            ['code' => 'G003', 'name' => 'Sering merasa haus (polidipsi)', 'description' => 'Rasa haus berlebihan akibat kadar gula menyerap cairan jaringan tubuh.'],
+            ['code' => 'G004', 'name' => 'Penglihatan kabur', 'description' => 'Gangguan penglihatan akibat penumpukan cairan pada lensa mata.'],
+            ['code' => 'G005', 'name' => 'Berat badan turun drastis', 'description' => 'Penurunan berat badan tanpa sebab yang jelas akibat pemecahan jaringan otot dan lemak.'],
+            ['code' => 'G006', 'name' => 'Obesitas', 'description' => 'Kelebihan berat badan yang signifikan yang memicu resistensi insulin.'],
+            ['code' => 'G007', 'name' => 'Luka sulit sembuh', 'description' => 'Proses penyembuhan luka yang sangat lambat akibat sirkulasi darah terganggu.'],
+            ['code' => 'G008', 'name' => 'Sering merasa lelah', 'description' => 'Rasa lelah dan lemas berlebihan walaupun sudah cukup istirahat.'],
+            ['code' => 'G009', 'name' => 'Infeksi kulit berulang', 'description' => 'Kemunculan infeksi pada kulit, bisul, atau jamur secara berulang.'],
+            ['code' => 'G010', 'name' => 'Kaki kebas / sering kesemutan', 'description' => 'Rasa kebas, mati rasa, atau kesemutan pada area kaki dan jemari.'],
+            ['code' => 'G011', 'name' => 'Usia > 20', 'description' => 'Pasien berusia di atas 20 tahun.'],
+            ['code' => 'G012', 'name' => 'Gatal-gatal', 'description' => 'Rasa gatal pada kulit di beberapa bagian tubuh tanpa sebab alergi jelas.'],
+            ['code' => 'G013', 'name' => 'Gusi sering infeksi dan luka', 'description' => 'Infeksi, pembengkakan, atau luka berulang pada gusi dan area mulut.'],
+            ['code' => 'G014', 'name' => 'Sering mengantuk', 'description' => 'Rasa kantuk berlebihan terutama setelah makan.'],
+            ['code' => 'G015', 'name' => 'Mudah terserang influenza', 'description' => 'Daya tahan tubuh menurun sehingga mudah terserang flu dan infeksi ringan.'],
+            ['code' => 'G016', 'name' => 'Pendengaran berkurang', 'description' => 'Penurunan daya pendengaran akibat kerusakan syaraf pendengaran.'],
+            ['code' => 'G017', 'name' => 'Memiliki keluarga yang terkena diabetes', 'description' => 'Riwayat genetik keluarga (orang tua/saudara) penderita diabetes.'],
+            ['code' => 'G018', 'name' => 'Tekanan darah tinggi', 'description' => 'Hipertensi atau tekanan darah di atas rentang normal.'],
+            ['code' => 'G019', 'name' => 'Air seni dikerubuti semut', 'description' => 'Adanya kandungan gula tinggi dalam urin sehingga menarik perhatian semut.'],
+            ['code' => 'G020', 'name' => 'Acanthosis nigricans (leher menghitam)', 'description' => 'Perubahan warna kulit menjadi gelap kehitaman di lipatan leher atau ketiak.'],
+            ['code' => 'G021', 'name' => 'Usia < 20', 'description' => 'Pasien berusia di bawah 20 tahun.'],
+            ['code' => 'G022', 'name' => 'Enuresis (mengompol / tidak bisa menahan BAK)', 'description' => 'Kesulitan menahan buang air kecil atau mengompol saat tidur.'],
+            ['code' => 'G023', 'name' => 'Hiperglikemia', 'description' => 'Kadar gula darah sewaktu > 200 mg/dl atau puasa >= 126 mg/dl.'],
+            ['code' => 'G024', 'name' => 'Nokturia', 'description' => 'Sering terbangun di malam hari hanya untuk buang air kecil.'],
+            ['code' => 'G025', 'name' => 'Nafas berbau keton', 'description' => 'Aroma nafas berbau manis atau seperti buah akibat penumpukan keton (ketoasidosis).'],
+            ['code' => 'G026', 'name' => 'Mual, muntah, sakit perut', 'description' => 'Gangguan pencernaan berupa mual, muntah, dan nyeri di perut.'],
         ];
 
-        foreach ($symptoms as $symptom) {
-            Symptom::create($symptom);
+        foreach ($symptoms as $s) {
+            Symptom::create($s);
         }
     }
 }

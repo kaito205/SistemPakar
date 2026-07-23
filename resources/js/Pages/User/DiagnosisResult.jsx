@@ -1,396 +1,308 @@
-import { Head, Link, router } from '@inertiajs/react';
-import React, { useState, useEffect } from 'react';
-
-// Depresi categories
-const DEPRESI_DICT = {
-    "M1": { id: "M1", name: "Depresi Ringan (Mild/Minor)", badgeColor: "bg-teal-50 text-teal-750 border-teal-200 dark:bg-slate-800 dark:text-teal-400 dark:border-slate-700" },
-    "M2": { id: "M2", name: "Depresi Sedang (Moderate)", badgeColor: "bg-teal-100 text-teal-850 border-teal-300 dark:bg-slate-800 dark:text-teal-300 dark:border-slate-700" },
-    "M3": { id: "M3", name: "Depresi Berat (Severe/Major)", badgeColor: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-slate-800 dark:text-rose-400 dark:border-slate-700" }
-};
-
-// Article details
-const ARTICLES = {
-    "M1": {
-        judul: "Mild Depression / Minor Depression (Depresi Ringan)",
-        url_gambar: "https://d1vbn70lmn1nqe.cloudfront.net/prod/wp-content/uploads/2022/10/04084507/Ini-Ciri-Ciri-Depresi-Ringan-yang-Masih-Sering-Diabaikan.jpg",
-        isi: "Mild depression atau minor depression dan dysthymic disorder. Pada depresi ringan, mood yang rendah datang dan pergi dan penyakit datang setelah kejadian stressfull yang spesifik. Individu akan merasa cemas dan juga tidak bersemangat. Perubahan gaya hidup biasanya dibutuhkan untuk mengurangi depresi jenis ini. Minor depression ditandai dengan adanya dua gejala pada depressive episode namun tidak lebih dari lima gejala depresi muncul selama dua minggu berturut-turut."
-    },
-    "M2": {
-        judul: "Moderate Depression (Depresi Sedang)",
-        url_gambar: "https://soc-phoenix.s3-ap-southeast-1.amazonaws.com/wp-content/uploads/2017/09/22173906/mental-illness-and-disorders.jpg",
-        isi: "Pada depresi sedang mood yang rendah berlangsung terus dan individu mengalami simtom fisik juga walaupun berbeda-beda tiap individu. Perubahan gaya hidup saja tidak cukup dan bantuan luar (seperti konseling) diperlukan untuk mengatasinya secara efektif agar tidak berkembang menjadi depresi mayor."
-    },
-    "M3": {
-        judul: "Severe Depression / Major Depression (Depresi Berat)",
-        url_gambar: "https://soc-phoenix.s3-ap-southeast-1.amazonaws.com/wp-content/uploads/2017/09/22173906/mental-illness-and-disorders.jpg",
-        isi: "Depresi berat adalah penyakit yang tingkat depresinya parah. Individu akan mengalami gangguan serius dalam kemampuan untuk bekerja, tidur, makan, dan menikmati hal yang menyenangkan. Sangat penting untuk mendapatkan bantuan medis secepat mungkin. Major depression ditandai dengan adanya lima atau lebih gejala yang ditunjukkan dalam major depressive episode dan berlangsung selama dua minggu berturut-turut."
-    }
-};
+import { Head, Link } from "@inertiajs/react";
+import React, { useState, useEffect } from "react";
 
 export default function DiagnosisResult() {
-    // Dark Mode State
-    const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [data, setData] = useState(null);
+  const [showBreakdown, setShowBreakdown] = useState(false);
 
-    useEffect(() => {
-        const isDark = document.documentElement.classList.contains('dark');
-        setDarkMode(isDark);
-    }, []);
+  useEffect(() => {
+    const isDark = document.documentElement.classList.contains("dark");
+    setDarkMode(isDark);
 
-    const toggleDarkMode = () => {
-        if (darkMode) {
-            document.documentElement.classList.remove('dark');
-            localStorage.setItem('theme', 'light');
-            setDarkMode(false);
-        } else {
-            document.documentElement.classList.add('dark');
-            localStorage.setItem('theme', 'dark');
-            setDarkMode(true);
-        }
-    };
-
-    const [apiResults, setApiResults] = useState(null);
-    const [showDetails, setShowDetails] = useState(false);
-    const [userInfo, setUserInfo] = useState(null);
-
-    const toggleDetails = () => {
-        console.log('Toggle clicked, current state:', showDetails);
-        setShowDetails(prev => {
-            console.log('Setting showDetails to:', !prev);
-            return !prev;
-        });
-    };
-
-    useEffect(() => {
-        const savedResults = localStorage.getItem('depresicheck_results');
-        const savedInfo = localStorage.getItem('depresicheck_user_info');
-        if (savedResults) {
-            setApiResults(JSON.parse(savedResults));
-        }
-        if (savedInfo) {
-            setUserInfo(JSON.parse(savedInfo));
-        }
-    }, []);
-
-    if (!apiResults || !apiResults.results || apiResults.results.length === 0) {
-        return (
-            <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-center items-center p-6">
-                <div className="bg-white border border-slate-200 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl shadow-slate-200/50">
-                    <div className="w-16 h-16 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center mx-auto mb-6 text-teal-650">
-                        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                    </div>
-                    <h2 className="text-xl font-extrabold text-slate-900 mb-2">Belum Ada Hasil Diagnosis</h2>
-                    <p className="text-slate-550 text-sm mb-6 leading-relaxed">
-                        Anda belum melakukan diagnosis depresi. Silakan isi kuesioner terlebih dahulu untuk melihat hasil diagnosa Anda.
-                    </p>
-                    <Link href="/diagnosa" className="inline-block w-full py-3.5 bg-teal-500 hover:bg-teal-600 text-white font-extrabold rounded-xl shadow-lg shadow-teal-500/20 transition text-center">
-                        Isi Kuesioner Sekarang
-                    </Link>
-                </div>
-            </div>
-        );
+    const saved = sessionStorage.getItem("diagnosis_result");
+    if (saved) {
+      try {
+        setData(JSON.parse(saved));
+      } catch (e) {
+        console.error("Gagal membaca hasil diagnosa", e);
+      }
     }
+  }, []);
 
-    const highest = apiResults.results[0];
-    const results = apiResults.results;
-    const matchedSymptoms = apiResults.matched_symptoms;
-    const article = ARTICLES[highest.depression_level.code];
+  const toggleDarkMode = () => {
+    if (darkMode) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setDarkMode(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setDarkMode(true);
+    }
+  };
 
+  if (!data || !data.top_result) {
     return (
-        <>
-            <Head title="Hasil Diagnosa Depresi - DepresiCheck" />
-
-            <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-teal-500 selection:text-white pb-20 dark:bg-slate-950 dark:text-slate-200">
-                {/* Navbar */}
-                <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 py-4 px-6 fixed top-0 w-full z-40 shadow-sm shadow-slate-100/30 dark:bg-slate-900/80 dark:border-slate-800/80 dark:shadow-slate-950/20">
-                    <div className="max-w-5xl mx-auto flex items-center justify-between">
-                        <Link href="/" className="flex items-center gap-2">
-                            <img src="/img/logo.png?v=2" alt="DepresiCheck Logo" className="w-9 h-9 object-contain" />
-                            <span className="text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                                DepresiCheck
-                            </span>
-                        </Link>
-                        
-                        <div className="flex items-center gap-4">
-                            {/* Dark Mode Toggle */}
-                            <button
-                                onClick={toggleDarkMode}
-                                className="p-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition focus:outline-none"
-                                aria-label="Toggle Dark Mode"
-                            >
-                                {darkMode ? (
-                                    <svg className="w-4 h-4 text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707m2.828 9.9a5 5 0 117.072-7.072 5 5 0 01-7.072 7.072z" />
-                                    </svg>
-                                ) : (
-                                    <svg className="w-4 h-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                                    </svg>
-                                )}
-                            </button>
-
-                            <Link href="/diagnosa" className="text-sm font-bold text-teal-605 dark:text-teal-400 hover:underline">
-                                Ulangi Tes
-                            </Link>
-                        </div>
-                    </div>
-                </nav>
-
-                <main className="max-w-4xl mx-auto px-4 pt-28">
-                    
-                    {/* Header Announcement */}
-                    <div className="text-center mb-8">
-                        <span className="text-xs uppercase tracking-widest text-teal-650 dark:text-teal-400 font-bold mb-2 block">Hasil Analisis</span>
-                        <h1 className="text-3xl sm:text-4xl font-black text-slate-950 dark:text-white">Laporan Diagnosis Depresi</h1>
-                    </div>
-
-                    {/* Student Identity Card */}
-                    {userInfo && (
-                        <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm dark:bg-slate-900 dark:border-slate-800/80 mb-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
-                            <div>
-                                <h3 className="text-xs uppercase tracking-wider text-slate-405 dark:text-slate-500 font-bold mb-1">Identitas Mahasiswa</h3>
-                                <div className="text-lg font-extrabold text-slate-900 dark:text-white">{userInfo.nama}</div>
-                                <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    NIM: <span className="font-mono font-bold">{userInfo.nim}</span> &bull; {userInfo.prodi} (Angkatan {userInfo.angkatan})
-                                </div>
-                            </div>
-                            <div className="inline-flex self-start sm:self-auto px-3.5 py-1.5 rounded-xl bg-teal-500/10 text-teal-650 dark:text-teal-400 font-bold text-xs">
-                                Diagnosa Mandiri
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Result Card */}
-                    <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-10 shadow-xl shadow-slate-200/20 dark:bg-slate-900 dark:border-slate-800/80 dark:shadow-none mb-8 relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/[0.02] rounded-full blur-3xl -z-10 animate-pulse"></div>
-
-                        <div className="flex flex-col sm:flex-row items-center gap-8">
-                            {/* Left: Score Circle */}
-                            <div className="relative flex-shrink-0 w-36 h-36 rounded-full border-4 border-slate-100 dark:border-slate-800 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950 shadow-inner">
-                                <div className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-0.5 animate-pulse">Keyakinan</div>
-                                <div className="text-3xl font-black text-teal-605 dark:text-teal-400">{(highest.cf * 100).toFixed(1)}%</div>
-                                <div className="text-[10px] font-mono text-slate-400 dark:text-slate-500 mt-1">CF: {parseFloat(highest.cf).toFixed(3)}</div>
-
-                                <svg className="absolute -inset-1 w-[152px] -rotate-90 pointer-events-none" viewBox="0 0 100 100">
-                                    <circle
-                                        cx="50"
-                                        cy="50"
-                                        r="46"
-                                        fill="transparent"
-                                        stroke="url(#tealGradient)"
-                                        strokeWidth="4"
-                                        strokeDasharray="289"
-                                        strokeDashoffset={289 - (289 * highest.cf)}
-                                        strokeLinecap="round"
-                                    />
-                                    <defs>
-                                        <linearGradient id="tealGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                            <stop offset="0%" stopColor="#0d9488" />
-                                            <stop offset="100%" stopColor="#0d9488" />
-                                        </linearGradient>
-                                    </defs>
-                                </svg>
-                            </div>
-
-                            {/* Right: Diagnosis Category Details */}
-                            <div className="text-center sm:text-left flex-grow">
-                                <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${DEPRESI_DICT[highest.depression_level.code]?.badgeColor || 'bg-teal-50 text-teal-700 border-teal-200'} mb-3`}>
-                                    {highest.depression_level.code} &bull; {DEPRESI_DICT[highest.depression_level.code]?.name}
-                                </div>
-                                <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white mb-3">
-                                    {highest.depression_level.name}
-                                </h2>
-                                <p className="text-slate-650 dark:text-slate-300 leading-relaxed text-sm sm:text-base">
-                                    Berdasarkan perhitungan Certainty Factor dari 15 butir gejala yang diinputkan, Anda diestimasikan berada dalam kategori <span className="text-teal-600 font-extrabold">{highest.depression_level.name}</span> dengan tingkat kepastian <span className="text-teal-600 font-extrabold">{(highest.cf * 100).toFixed(2)}%</span>.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Recommendation Article Section */}
-                    {article && (
-                        <div className="bg-white border border-slate-200/80 rounded-3xl overflow-hidden shadow-xl shadow-slate-200/20 dark:bg-slate-900 dark:border-slate-800 dark:shadow-none mb-8">
-                            <div className="h-64 sm:h-80 w-full overflow-hidden relative">
-                                <img src={article.url_gambar} alt={article.judul} className="w-full h-full object-cover opacity-90 transition" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent"></div>
-                                <div className="absolute bottom-6 left-6 right-6">
-                                    <span className="text-xs uppercase tracking-widest text-teal-400 font-bold mb-2 block">Kriteria Depresi</span>
-                                    <h3 className="text-2xl font-black text-white">{article.judul}</h3>
-                                </div>
-                            </div>
-                            <div className="p-6 sm:p-10 border-t border-slate-100 dark:border-slate-800">
-                                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm sm:text-base whitespace-pre-line">
-                                    {article.isi}
-                                </p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Personalized Suggestions (S) based on Symptoms */}
-                    {matchedSymptoms.length > 0 && (
-                        <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-10 shadow-xl shadow-slate-200/20 dark:bg-slate-900 dark:border-slate-800 dark:shadow-none mb-8">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">Saran Penanganan Berdasarkan Gejala Anda</h3>
-                            <div className="space-y-6">
-                                {matchedSymptoms.map((item) => {
-                                    const symptom = item.symptom;
-                                    return (
-                                        <div key={symptom.id} className="flex gap-4 items-start p-4 bg-teal-500/[0.02] dark:bg-teal-500/[0.04] border border-teal-500/10 dark:border-teal-500/20 rounded-2xl">
-                                            <div className="w-7 h-7 rounded-full bg-teal-500/10 text-teal-650 flex items-center justify-center text-xs font-bold font-mono flex-shrink-0">
-                                                {symptom.code}
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">
-                                                    Mengalami {symptom.name}
-                                                </h4>
-                                                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-350 leading-relaxed">
-                                                    {symptom.suggestion}
-                                                </p>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Detailed Calculations Accordion Button */}
-                    <div className="mb-6 flex justify-between items-center">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white">Rincian Perhitungan Matematis</h3>
-                        <button
-                            onClick={toggleDetails}
-                            className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:border-slate-350 dark:bg-slate-900 dark:border-slate-800 dark:hover:bg-slate-750 dark:text-teal-400 shadow-sm transition text-xs font-bold flex items-center gap-2"
-                        >
-                            {showDetails ? 'Sembunyikan Rumus' : 'Tampilkan Perhitungan Pakar'}
-                            <svg className={`w-4 h-4 transition ${showDetails ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                            </svg>
-                        </button>
-                    </div>
-
-                    {/* Detailed Math Calculations Box */}
-                    {showDetails && (
-                        <div className="space-y-8">
-                            <div className="bg-teal-50 dark:bg-teal-950/20 p-4 rounded-xl border border-teal-200 dark:border-teal-800">
-                                <p className="text-sm text-teal-800 dark:text-teal-300">
-                                    <strong>Debug Info:</strong> Results: {results?.length || 0}, Matched Symptoms: {matchedSymptoms?.length || 0}
-                                </p>
-                            </div>
-
-                            {/* Summary list of CFs */}
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                {results && results.length > 0 ? results.map((res) => {
-                                    const isWinner = res.depression_level.code === highest.depression_level.code;
-                                    const depresiInfo = DEPRESI_DICT[res.depression_level.code];
-                                    return (
-                                        <div key={res.depression_level.code} className={`p-4 rounded-2xl border ${
-                                            isWinner ? 'bg-teal-50/30 border-teal-300 dark:bg-teal-950/20 dark:border-teal-800' : 'bg-white border-slate-200 dark:bg-slate-900 dark:border-slate-800 shadow-sm dark:shadow-none'
-                                        }`}>
-                                            <div className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">{res.depression_level.code}</div>
-                                            <div className="font-extrabold text-sm text-slate-800 dark:text-white truncate">{depresiInfo?.name || res.depression_level.name}</div>
-                                            <div className={`text-xl font-black mt-1 ${isWinner ? 'text-teal-600 dark:text-teal-400' : 'text-slate-400 dark:text-slate-500'}`}>
-                                                {(res.cf * 100).toFixed(1)}%
-                                            </div>
-                                        </div>
-                                    );
-                                }) : (
-                                    <div className="col-span-3 text-center text-slate-400">No results available</div>
-                                )}
-                            </div>
-
-                            {/* Chosen Category Table Calculation */}
-                            <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-xl shadow-slate-200/10 dark:shadow-none">
-                                <div className="p-5 bg-slate-50 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-850 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
-                                    <div className="font-bold text-slate-800 dark:text-white text-sm">
-                                        Matriks Gejala & CF Kombinasi untuk <span className="text-teal-600 dark:text-teal-400">{DEPRESI_DICT[highest.depression_level.code]?.name}</span>
-                                    </div>
-                                    <span className="text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800 px-2 py-0.5 rounded self-start">
-                                        Formula: CF_i = CF_pakar * CF_user
-                                    </span>
-                                </div>
-
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-left text-xs sm:text-sm text-slate-700 dark:text-slate-300">
-                                        <thead className="bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-500 font-bold uppercase tracking-wider border-b border-slate-200 dark:border-slate-800 text-[10px]">
-                                            <tr>
-                                                <th className="px-6 py-4">Kode</th>
-                                                <th className="px-6 py-4">Gejala Terdeteksi</th>
-                                                <th className="px-6 py-4 text-center">CF Pakar</th>
-                                                <th className="px-6 py-4 text-center">CF User</th>
-                                                <th className="px-6 py-4 text-right">CF Hasil (CF_i)</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-                                            {matchedSymptoms && matchedSymptoms.length > 0 ? matchedSymptoms.map((item) => {
-                                                const symptom = item.symptom;
-                                                return (
-                                                    <tr key={symptom.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-950/50">
-                                                        <td className="px-6 py-4 font-mono font-bold text-teal-600 dark:text-teal-400">{symptom.code}</td>
-                                                        <td className="px-6 py-4 max-w-xs truncate">{symptom.name}</td>
-                                                        <td className="px-6 py-4 text-center font-mono">{symptom.expert_cf.toFixed(2)}</td>
-                                                        <td className="px-6 py-4 text-center font-mono text-emerald-600 dark:text-emerald-400 font-bold">{item.user_cf.toFixed(2)}</td>
-                                                        <td className="px-6 py-4 text-right font-mono font-bold text-teal-600 dark:text-teal-400">{item.calculated_cf.toFixed(4)}</td>
-                                                    </tr>
-                                                );
-                                            }) : (
-                                                <tr>
-                                                    <td colSpan="5" className="px-6 py-10 text-center text-slate-400 dark:text-slate-600">
-                                                        Tidak ada gejala yang cocok terdeteksi untuk penyakit ini.
-                                                    </td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-
-                            {/* Sequential Combinations Steps */}
-                            {matchedSymptoms && matchedSymptoms.length > 1 && (
-                                <div className="bg-white border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl shadow-slate-200/10 dark:shadow-none">
-                                    <h4 className="font-bold text-slate-900 dark:text-white text-sm mb-4">Penggabungan Certainty Factor Berurutan (CF_combine)</h4>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
-                                        Menggabungkan CF_i dari masing-masing gejala secara rekursif menggunakan rumus:
-                                        <br />
-                                        <code className="text-teal-600 dark:text-teal-450 font-mono font-semibold block my-1">CF_gabungan = CF_old + CF_new * (1 - CF_old)</code>
-                                    </p>
-
-                                    <div className="font-mono text-xs text-slate-650 dark:text-slate-350 space-y-2 bg-slate-50 dark:bg-slate-950 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
-                                        <div>Step 1 (Inisial CF_1): <span className="text-teal-600 dark:text-teal-400 font-bold">{matchedSymptoms[0]?.calculated_cf.toFixed(4)}</span></div>
-                                        {matchedSymptoms.slice(1).map((item, idx) => {
-                                            const currentCf = item.calculated_cf;
-                                            const prevCf = matchedSymptoms[idx].calculated_cf;
-                                            const combinedCf = prevCf + currentCf * (1 - prevCf);
-                                            return (
-                                                <div key={item.symptom.id} className="border-t border-slate-200 dark:border-slate-800 pt-2 mt-2">
-                                                    <div>Step {idx + 2} (Gabungkan dengan {item.symptom.code}):</div>
-                                                    <div className="text-[10px] text-slate-400 dark:text-slate-500">
-                                                        CF_gabungan = {prevCf.toFixed(5)} + ({currentCf.toFixed(5)} * (1 - {prevCf.toFixed(5)})) = {combinedCf.toFixed(5)}
-                                                    </div>
-                                                </div>
-                                            );
-                                        })}
-                                        <div className="border-t border-slate-200 dark:border-slate-800 pt-2 mt-2 font-bold text-teal-600 dark:text-teal-400">
-                                            Hasil Akhir CF: {highest.cf.toFixed(5)}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                        </div>
-                    )}
-
-                    {/* Back and Restart Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mt-12">
-                        <Link href="/diagnosa" className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-extrabold shadow-lg shadow-teal-500/20 text-center transition">
-                            Ulangi Diagnosis
-                        </Link>
-                        <Link href="/" className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-white border border-slate-200 hover:border-slate-350 dark:bg-slate-900 dark:border-slate-800 dark:hover:bg-slate-750 dark:text-slate-300 text-slate-700 text-center font-bold shadow-sm transition">
-                            Kembali ke Beranda
-                        </Link>
-                    </div>
-
-                </main>
-            </div>
-        </>
+      <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-200 font-sans flex flex-col justify-center items-center p-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 max-w-md w-full text-center shadow-xl">
+          <div className="w-16 h-16 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto mb-6 border border-teal-200 dark:border-teal-800">
+            <svg className="w-8 h-8 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+            Belum Ada Hasil Diagnosa
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 text-xs mb-6 leading-relaxed">
+            Anda belum melakukan pengisian kuesioner diagnosa diabetes. Silakan isi form konsultasi terlebih dahulu.
+          </p>
+          <Link
+            href="/diagnosa"
+            className="inline-block w-full py-3.5 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-2xl shadow-lg shadow-teal-600/30 transition text-center text-xs"
+          >
+            Mulai Form Konsultasi &rarr;
+          </Link>
+        </div>
+      </div>
     );
+  }
+
+  const { user_info, top_result, results, solutions } = data;
+  const isHealthy = !top_result || top_result.percentage === 0;
+
+  return (
+    <>
+      <Head title="Hasil Diagnosa Certainty Factor - Diabetes Melitus" />
+
+      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-300">
+        {/* Header */}
+        <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-50/80 dark:bg-slate-950/80 border-b border-slate-200/60 dark:border-slate-800/60">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-teal-600 flex items-center justify-center text-white text-xl shadow-lg shadow-teal-600/30">
+                <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.12a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+              </div>
+              <div>
+                <span className="font-black text-lg text-slate-900 dark:text-white tracking-tight">
+                  Diabe<span className="text-teal-600 dark:text-teal-400">CF</span>
+                </span>
+                <span className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                  Hasil Diagnosa Medis
+                </span>
+              </div>
+            </Link>
+
+            <div className="flex items-center gap-3">
+              <button
+                onClick={toggleDarkMode}
+                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-teal-500 transition"
+              >
+                <svg className="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                  {darkMode ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  )}
+                </svg>
+              </button>
+              <Link
+                href="/diagnosa"
+                className="px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-md shadow-teal-600/20 transition flex items-center gap-1.5"
+              >
+                <span>Diagnosa Ulang</span>
+                <svg className="w-3.5 h-3.5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-4xl mx-auto px-4 py-12 space-y-8">
+          {/* Patient Card Header */}
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+              <span className="text-[10px] font-bold text-teal-600 dark:text-teal-400 uppercase tracking-widest block mb-1">
+                Laporan Diagnosa Sistem Pakar
+              </span>
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+                Hasil Diagnosa: {user_info?.nama}
+              </h1>
+              {user_info?.nim && user_info.nim !== '-' && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Identitas: {user_info.nim} • {user_info.prodi} ({user_info.angkatan})
+                </p>
+              )}
+            </div>
+            <button
+              onClick={() => window.print()}
+              className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 text-slate-700 dark:text-slate-200 font-bold text-xs transition flex items-center gap-2"
+            >
+              <svg className="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              <span>Cetak Hasil</span>
+            </button>
+          </div>
+
+          {/* Main Top Result Card */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200/80 dark:border-slate-800 shadow-xl overflow-hidden relative">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-8 pb-8 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <span className="inline-block px-3 py-1 bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300 font-black text-xs rounded-full mb-3">
+                  {isHealthy ? "P000" : top_result.disease_code}
+                </span>
+                <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-2">
+                  {isHealthy ? "Sehat / Tidak Terdeteksi Diabetes" : top_result.disease_name}
+                </h2>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed max-w-xl">
+                  {isHealthy
+                    ? "Berdasarkan gejala yang diinputkan, Anda tidak menunjukkan derivasi gejala klinis yang mengarah pada Diabetes Melitus Tipe 1 maupun Tipe 2."
+                    : top_result.description}
+                </p>
+              </div>
+
+              {/* Certainty Factor Percentage Gauge Card */}
+              <div className="shrink-0 text-center bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-950/60 dark:to-slate-900 p-6 rounded-3xl border border-teal-200/60 dark:border-teal-800/60 min-w-[200px]">
+                <div className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-1">
+                  Tingkat Kepastian (CF)
+                </div>
+                <div className="text-5xl font-black text-teal-600 dark:text-teal-400 my-1">
+                  {isHealthy ? "0.0" : top_result.percentage}%
+                </div>
+                <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full mt-3 overflow-hidden">
+                  <div
+                    className="bg-teal-500 h-full rounded-full transition-all duration-1000"
+                    style={{ width: `${isHealthy ? 0 : top_result.percentage}%` }}
+                  ></div>
+                </div>
+                <span className="text-[10px] text-slate-400 mt-2 block font-medium">
+                  {isHealthy ? "Kondisi Sehat" : `CF Total: ${top_result.cf}`}
+                </span>
+              </div>
+            </div>
+
+            {/* Recommendations / Solutions Section */}
+            <div className="space-y-4">
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <svg className="w-5 h-5 text-teal-600 dark:text-teal-400 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 01-2 2h-0a2 2 0 01-2-2v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
+                <span>Rekomendasi Medis, Pengobatan &amp; Pencegahan:</span>
+              </h3>
+              <ul className="space-y-2.5">
+                {(solutions || []).map((sol, idx) => (
+                  <li
+                    key={idx}
+                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 leading-relaxed flex items-start gap-3"
+                  >
+                    <span className="w-5 h-5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-400 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                      {idx + 1}
+                    </span>
+                    <span>{sol}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* Comparison of All Diseases */}
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              Hasil Perbandingan Derajat Kepastian Penyakit
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {(results || []).map((res) => (
+                <div
+                  key={res.disease_code}
+                  className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 flex items-center justify-between"
+                >
+                  <div>
+                    <span className="text-[10px] font-bold text-slate-400 block">{res.disease_code}</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-white">{res.disease_name}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-lg font-black text-teal-600 dark:text-teal-400 block">{res.percentage}%</span>
+                    <span className="text-[10px] text-slate-400">CF: {res.cf}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Calculation Breakdown Section */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+            <button
+              onClick={() => setShowBreakdown(!showBreakdown)}
+              className="w-full p-6 text-left font-bold text-slate-900 dark:text-white flex items-center justify-between text-sm"
+            >
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-teal-600 dark:text-teal-400 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+                <span>Rincian Perhitungan Algoritma Certainty Factor (CF[H,E])</span>
+              </span>
+              <span>{showBreakdown ? "▲ Sembunyikan" : "▼ Tampilkan Rincian"}</span>
+            </button>
+
+            {showBreakdown && (
+              <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 space-y-6">
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Rumus dasar perkalian bobot Certainty Factor: <br />
+                  <code className="bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded text-teal-600 dark:text-teal-400 font-mono text-[11px]">
+                    CF[H,E] = CF_user &times; CF_pakar
+                  </code>
+                  <br />
+                  Kemudian dikombinasikan secara berurutan: <br />
+                  <code className="bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded text-teal-600 dark:text-teal-400 font-mono text-[11px]">
+                    CF_comb = CF_old + CF_new &times; (1 - CF_old)
+                  </code>
+                </p>
+
+                {(results || []).map((res) => (
+                  <div key={res.disease_code} className="space-y-3">
+                    <h4 className="text-xs font-bold text-slate-800 dark:text-white">
+                      Gejala Terdeteksi pada {res.disease_code} ({res.disease_name}):
+                    </h4>
+
+                    {res.matched_symptoms.length === 0 ? (
+                      <p className="text-xs text-slate-400">Tidak ada gejala terpilih yang cocok untuk penyakit ini.</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="bg-slate-100 dark:bg-slate-800 text-slate-500 font-semibold border-b border-slate-200 dark:border-slate-700">
+                              <th className="p-2.5">Kode</th>
+                              <th className="p-2.5">Gejala Klinis</th>
+                              <th className="p-2.5">CF User</th>
+                              <th className="p-2.5">CF Pakar</th>
+                              <th className="p-2.5">CF[H,E] (Hasil)</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                            {res.matched_symptoms.map((ms) => (
+                              <tr key={ms.symptom_code}>
+                                <td className="p-2.5 font-bold">{ms.symptom_code}</td>
+                                <td className="p-2.5">{ms.symptom_name}</td>
+                                <td className="p-2.5">{ms.user_cf}</td>
+                                <td className="p-2.5">{ms.cf_pakar}</td>
+                                <td className="p-2.5 font-bold text-teal-600 dark:text-teal-400">{ms.cf_he}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="text-center pt-4">
+            <Link
+              href="/"
+              className="inline-block px-8 py-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-bold hover:border-teal-500 transition"
+            >
+              &larr; Kembali ke Beranda Utama
+            </Link>
+          </div>
+        </main>
+      </div>
+    </>
+  );
 }

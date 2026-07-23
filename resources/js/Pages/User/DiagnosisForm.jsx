@@ -1,73 +1,69 @@
 import { Head, Link, router } from "@inertiajs/react";
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
 const KONDISI_CHOICES = [
   {
     kondisi: "Sangat Yakin",
     nilai: 1.0,
-    color: "border-teal-200 hover:bg-teal-50 text-teal-700 bg-teal-50/10",
-    activeColor:
-      "ring-2 ring-teal-500 bg-teal-50 border-transparent text-teal-900 font-bold",
+    desc: "Sangat yakin mengalami gejala ini (CF = 1.0)",
+    badge: "1.0",
   },
   {
     kondisi: "Yakin",
     nilai: 0.8,
-    color: "border-teal-200 hover:bg-teal-50 text-teal-700 bg-teal-50/10",
-    activeColor:
-      "ring-2 ring-teal-500 bg-teal-50 border-transparent text-teal-900 font-bold",
+    desc: "Yakin mengalami gejala ini (CF = 0.8)",
+    badge: "0.8",
   },
   {
     kondisi: "Cukup Yakin",
     nilai: 0.6,
-    color: "border-teal-200 hover:bg-teal-50 text-teal-700 bg-teal-50/10",
-    activeColor:
-      "ring-2 ring-teal-500 bg-teal-50 border-transparent text-teal-900 font-bold",
+    desc: "Cukup yakin mengalami gejala ini (CF = 0.6)",
+    badge: "0.6",
   },
   {
     kondisi: "Sedikit Yakin",
     nilai: 0.4,
-    color: "border-teal-200 hover:bg-teal-50 text-teal-700 bg-teal-50/10",
-    activeColor:
-      "ring-2 ring-teal-500 bg-teal-50 border-transparent text-teal-900 font-bold",
+    desc: "Sedikit merasa mengalami gejala ini (CF = 0.4)",
+    badge: "0.4",
   },
   {
-    kondisi: "Tidak Tahu",
-    nilai: 0.2,
-    color: "border-teal-200 hover:bg-teal-50 text-teal-700 bg-teal-50/10",
-    activeColor:
-      "ring-2 ring-teal-500 bg-teal-50 border-transparent text-teal-900 font-bold",
-  },
-  {
-    kondisi: "Tidak Yakin",
+    kondisi: "Tidak Yakin / Tidak Merasakan",
     nilai: 0.0,
-    color: "border-slate-200 hover:bg-slate-50 text-slate-700 bg-slate-50/20",
-    activeColor:
-      "ring-2 ring-slate-400 bg-slate-100 border-transparent text-slate-800 font-bold",
-  },
-  {
-    kondisi: "Mungkin Tidak",
-    nilai: -0.4,
-    color: "border-slate-200 hover:bg-slate-50 text-slate-700 bg-slate-50/20",
-    activeColor:
-      "ring-2 ring-slate-400 bg-slate-100 border-transparent text-slate-800 font-bold",
+    desc: "Tidak merasakan gejala ini sama sekali (CF = 0.0)",
+    badge: "0.0",
   },
 ];
 
 export default function DiagnosisForm() {
-  // Dark Mode State
   const [darkMode, setDarkMode] = useState(false);
   const [symptoms, setSymptoms] = useState([]);
+  const [loadingSymptoms, setLoadingSymptoms] = useState(true);
+
+  // Form states
+  const [nama, setNama] = useState("");
+  const [nim, setNim] = useState("");
+  const [prodi, setProdi] = useState("");
+  const [angkatan, setAngkatan] = useState("");
+  const [step, setStep] = useState(0); // 0 = Data Pasien, 1 = Kuesioner Gejala
+  const [answers, setAnswers] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     const isDark = document.documentElement.classList.contains("dark");
     setDarkMode(isDark);
-  }, []);
 
-  useEffect(() => {
-    fetch('/api/symptoms')
-      .then(response => response.json())
-      .then(data => setSymptoms(data))
-      .catch(error => console.error('Error fetching symptoms:', error));
+    fetch("/api/symptoms")
+      .then((res) => res.json())
+      .then((data) => {
+        setSymptoms(data);
+        setLoadingSymptoms(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setLoadingSymptoms(false);
+      });
   }, []);
 
   const toggleDarkMode = () => {
@@ -82,530 +78,313 @@ export default function DiagnosisForm() {
     }
   };
 
-  const [activeIndex, setActiveIndex] = useState(-1); // -1 is Step 0 (Data Diri)
-  const [answers, setAnswers] = useState({});
-
-  // Student Identity States
-  const [nama, setNama] = useState("");
-  const [nim, setNim] = useState("");
-  const [prodi, setProdi] = useState("Teknik Informatika");
-  const [angkatan, setAngkatan] = useState("2022");
-
-  const handleSelectOption = (value) => {
-    setAnswers({
-      ...answers,
-      [activeIndex]: value,
-    });
-
-    if (activeIndex < symptoms.length - 1) {
-      setActiveIndex((prev) => prev + 1);
-    }
-  };
-
-  const handleNext = () => {
-    if (activeIndex < symptoms.length - 1) {
-      setActiveIndex(activeIndex + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (activeIndex > 0) {
-      setActiveIndex(activeIndex - 1);
-    } else if (activeIndex === 0) {
-      setActiveIndex(-1); // Back to Data Diri
-    }
-  };
-
-  const countAnswered = Object.keys(answers).length;
-  const isCompleted = countAnswered === symptoms.length;
-
-  const handleSubmit = async (e) => {
+  const handleStartQuestions = (e) => {
     e.preventDefault();
-    if (countAnswered < symptoms.length) {
-      alert(
-        `Harap selesaikan semua pertanyaan terlebih dahulu! Baru menjawab ${countAnswered} dari ${symptoms.length} pertanyaan.`
-      );
+    if (!nama.trim()) {
+      setErrorMessage("Nama pasien wajib diisi.");
       return;
     }
+    setErrorMessage("");
+    setStep(1);
+  };
 
-    const responses = symptoms.map((symptom, idx) => ({
-      symptom_id: symptom.id,
-      user_cf: answers[idx] || 0,
+  const handleAnswerChange = (symptomId, userCf) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [symptomId]: userCf,
+    }));
+  };
+
+  const handleSubmitDiagnosis = async () => {
+    setSubmitting(true);
+    setErrorMessage("");
+
+    const responsesArray = symptoms.map((s) => ({
+      symptom_id: s.id,
+      user_cf: answers[s.id] !== undefined ? answers[s.id] : 0.0,
     }));
 
     try {
-      const response = await fetch('/api/diagnose', {
-        method: 'POST',
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+      const res = await axios.post("/diagnosa/process", {
+        nama,
+        nim,
+        prodi,
+        angkatan,
+        responses: responsesArray,
+      }, {
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          nama,
-          nim,
-          prodi,
-          angkatan,
-          responses
-        }),
+          "X-CSRF-TOKEN": token || "",
+        }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('API Error:', errorData);
-        throw new Error(errorData.message || 'API request failed');
+      const result = res.data;
+
+      if (result.success) {
+        sessionStorage.setItem("diagnosis_result", JSON.stringify({
+          user_info: { nama, nim, prodi, angkatan },
+          top_result: result.top_result,
+          results: result.results,
+          solutions: result.solutions,
+        }));
+        router.visit("/diagnosa/hasil");
+      } else {
+        setErrorMessage(result.message || "Gagal memproses diagnosa.");
+        setSubmitting(false);
       }
-
-      const data = await response.json();
-      
-      localStorage.setItem('depresicheck_results', JSON.stringify(data));
-      
-      // Save Student Identity
-      const userInfo = { nama, nim, prodi, angkatan };
-      localStorage.setItem("depresicheck_user_info", JSON.stringify(userInfo));
-
-      router.visit("/diagnosa/hasil");
-    } catch (error) {
-      console.error('Error submitting diagnosis:', error);
-      alert('Terjadi kesalahan saat mengirim data diagnosa: ' + error.message);
+    } catch (err) {
+      console.error(err);
+      setErrorMessage(err.response?.data?.message || "Terjadi kesalahan pada server (CSRF/Network). Silakan coba lagi.");
+      setSubmitting(false);
     }
   };
 
-  const currentGejala = activeIndex >= 0 ? symptoms[activeIndex] : null;
-  const currentSelectedValue = activeIndex >= 0 ? answers[activeIndex] : null;
-
   return (
     <>
-      <Head title="Form Diagnosa Depresi - DepresiCheck" />
+      <Head title="Form Diagnosa Diabetes Melitus - Certainty Factor" />
 
-      <div className="min-h-screen bg-slate-50 text-slate-800 font-sans flex flex-col justify-between selection:bg-teal-500 selection:text-white dark:bg-slate-950 dark:text-slate-200">
-        {/* Navbar */}
-        <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200/60 py-4 px-6 shadow-sm shadow-slate-100/30 dark:bg-slate-900/80 dark:border-slate-800/80 dark:shadow-slate-950/20">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <img
-                src="/img/logo.png?v=2"
-                alt="DepresiCheck Logo"
-                className="w-9 h-9 object-contain"
-              />
-              <span className="text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                DepresiCheck
-              </span>
+      <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans transition-colors duration-300">
+        {/* Header */}
+        <header className="sticky top-0 z-40 backdrop-blur-xl bg-slate-50/80 dark:bg-slate-950/80 border-b border-slate-200/60 dark:border-slate-800/60">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-teal-600 flex items-center justify-center text-white text-xl shadow-lg shadow-teal-600/30">
+                <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.12a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+              </div>
+              <div>
+                <span className="font-black text-lg text-slate-900 dark:text-white tracking-tight">
+                  Diabe<span className="text-teal-600 dark:text-teal-400">CF</span>
+                </span>
+                <span className="block text-[10px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                  Form Konsultasi Diagnosa
+                </span>
+              </div>
             </Link>
 
-            <div className="flex items-center gap-4">
-              {/* Dark Mode Toggle */}
+            <div className="flex items-center gap-3">
               <button
                 onClick={toggleDarkMode}
-                className="p-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition focus:outline-none"
-                aria-label="Toggle Dark Mode"
+                className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:border-teal-500 transition"
               >
-                {darkMode ? (
-                  <svg
-                    className="w-4 h-4 text-teal-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M6.343 6.343l-.707-.707m2.828 9.9a5 5 0 117.072-7.072 5 5 0 01-7.072 7.072z"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="w-4 h-4 text-slate-600"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                    />
-                  </svg>
-                )}
+                <svg className="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                  {darkMode ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  )}
+                </svg>
               </button>
+              <Link
+                href="/"
+                className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold hover:border-teal-500 transition"
+              >
+                &larr; Kembali
+              </Link>
             </div>
           </div>
-        </nav>
+        </header>
 
-        {/* Main Content Area */}
-        <main className="max-w-4xl w-full mx-auto px-4 py-8 flex-grow flex flex-col justify-center">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start my-auto">
-            {/* Left Card */}
-            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 sm:p-10 shadow-xl shadow-slate-200/20 dark:bg-slate-900 dark:border-slate-880/80 dark:shadow-none lg:col-span-8 w-full min-h-[480px] flex flex-col justify-between">
-              {activeIndex === -1 ? (
-                // Step 0: Data Diri Form
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (!nama || !nim) {
-                      alert("Harap isi Nama dan NIM Anda!");
-                      return;
-                    }
-                    setActiveIndex(0);
-                  }}
-                  className="flex flex-col justify-between h-full min-h-[380px]"
-                >
-                  <div>
-                    <div className="flex justify-between items-center text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-6 font-semibold">
-                      <span>Registrasi Pengguna</span>
-                      <span className="font-mono text-teal-600 dark:text-teal-400 font-bold">
-                        Langkah 1 dari 2
-                      </span>
-                    </div>
-
-                    <div className="mb-6">
-                      <h2 className="text-2xl sm:text-3xl font-extrabold leading-snug text-slate-900 dark:text-white mb-2">
-                        Identitas Mahasiswa
-                      </h2>
-                      <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                        Harap masukkan identitas Anda sebelum memulai analisis
-                        tingkat depresi.
-                      </p>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
-                          Nama Lengkap
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Masukkan nama lengkap Anda"
-                          value={nama}
-                          onChange={(e) => setNama(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:border-teal-500 text-sm"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
-                          NIM (Nomor Induk Mahasiswa)
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          placeholder="Masukkan NIM Anda"
-                          value={nim}
-                          onChange={(e) => setNim(e.target.value)}
-                          className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:border-teal-500 text-sm"
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
-                            Program Studi
-                          </label>
-                          <select
-                            value={prodi}
-                            onChange={(e) => setProdi(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:border-teal-500 text-sm"
-                          >
-                            <option value="Teknik Informatika">
-                              Teknik Informatika
-                            </option>
-                            <option value="Sistem Informasi">
-                              Sistem Informasi
-                            </option>
-                            <option value="Teknik Industri">
-                              Teknik Industri
-                            </option>
-                            <option value="Teknik Sipil">Teknik Sipil</option>
-                            <option value="Manajemen">Manajemen</option>
-                            <option value="Akuntansi">Akuntansi</option>
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
-                            Angkatan
-                          </label>
-                          <select
-                            value={angkatan}
-                            onChange={(e) => setAngkatan(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:border-teal-500 text-sm"
-                          >
-                            <option value="2020">2020</option>
-                            <option value="2021">2021</option>
-                            <option value="2022">2022</option>
-                            <option value="2023">2023</option>
-                            <option value="2024">2024</option>
-                          </select>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-6 border-t border-slate-100 dark:border-slate-800 mt-6 flex justify-end">
-                    <button
-                      type="submit"
-                      className="px-6 py-3 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-extrabold shadow-lg shadow-teal-500/20 hover:scale-[1.02] transition text-sm flex items-center gap-2"
-                    >
-                      Mulai Diagnosis
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                // Original Question Form Layout
-                <>
-                  <div>
-                    <div className="flex justify-between items-center text-xs uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-6 font-semibold">
-                      <span>Kuesioner Gejala</span>
-                      <span className="font-mono text-teal-600 dark:text-teal-400 font-bold">
-                        Pertanyaan {activeIndex + 1} dari {symptoms.length}
-                      </span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mb-8 overflow-hidden">
-                      <div
-                        className="h-full bg-teal-500 transition-all duration-300"
-                        style={{
-                          width: `${
-                            ((activeIndex + 1) / symptoms.length) * 100
-                          }%`,
-                        }}
-                      ></div>
-                    </div>
-
-                    {/* Question Title */}
-                    <div className="mb-8">
-                      <span className="text-sm font-bold text-teal-600 dark:text-teal-450 mb-2 block">
-                        {currentGejala?.code}
-                      </span>
-                      <h2 className="text-2xl sm:text-3xl font-extrabold leading-snug text-slate-900 dark:text-white">
-                        Apakah Anda mengalami gejala{" "}
-                        <span className="text-teal-600 dark:text-teal-400">
-                          {currentGejala?.name}
-                        </span>
-                        ?
-                      </h2>
-                    </div>
-
-                    {/* Choices Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
-                      {KONDISI_CHOICES.map((choice) => {
-                        const isSelected =
-                          currentSelectedValue === choice.nilai;
-                        return (
-                          <button
-                            key={choice.nilai}
-                            type="button"
-                            onClick={() => handleSelectOption(choice.nilai)}
-                            className={`flex items-center justify-between p-4 rounded-xl border text-left font-semibold transition duration-150 ${
-                              isSelected
-                                ? choice.nilai === 0 || choice.nilai === -0.4
-                                  ? "ring-2 ring-slate-500 dark:ring-slate-400 bg-slate-150 dark:bg-slate-800/80 border-transparent text-slate-800 dark:text-slate-100 font-bold"
-                                  : "ring-2 ring-teal-500 bg-teal-50 dark:bg-teal-955/20 border-transparent text-teal-900 dark:text-teal-300 font-bold"
-                                : `border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-teal-50/50 dark:hover:bg-slate-800/50`
-                            }`}
-                          >
-                            <span>{choice.kondisi}</span>
-                            <div
-                              className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                                isSelected
-                                  ? "border-transparent bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900"
-                                  : "border-slate-300 dark:border-slate-700"
-                              }`}
-                            >
-                              {isSelected && (
-                                <svg
-                                  className="w-3 h-3"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                  strokeWidth="4.5"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    d="M5 13l4 4L19 7"
-                                  />
-                                </svg>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Stepper Navigation Actions */}
-                  <div className="flex justify-between items-center border-t border-slate-100 dark:border-slate-800 pt-6 mt-4">
-                    <button
-                      type="button"
-                      onClick={handlePrev}
-                      className="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 transition text-sm font-semibold flex items-center gap-2"
-                    >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M15 19l-7-7 7-7"
-                        />
-                      </svg>
-                      Sebelumnya
-                    </button>
-
-                    {activeIndex === symptoms.length - 1 ? (
-                      <button
-                        type="button"
-                        onClick={handleSubmit}
-                        className="px-6 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-600 text-white font-extrabold shadow-lg shadow-teal-500/20 hover:scale-105 transition text-sm flex items-center gap-2"
-                      >
-                        Kirim Hasil
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth="2.5"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleNext}
-                        disabled={currentSelectedValue === undefined}
-                        className="px-5 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 disabled:opacity-40 disabled:hover:bg-slate-50 dark:disabled:hover:bg-slate-800 transition text-sm font-semibold flex items-center gap-2"
-                      >
-                        Berikutnya
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                </>
-              )}
+        {/* Content */}
+        <main className="max-w-4xl mx-auto px-4 py-12">
+          {errorMessage && (
+            <div className="mb-6 p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-sm flex items-center gap-2">
+              <svg className="w-5 h-5 fill-none stroke-current shrink-0" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <span>{errorMessage}</span>
             </div>
+          )}
 
-            {/* Right Card */}
-            <div className="bg-white border border-slate-200/80 rounded-3xl p-6 shadow-xl shadow-slate-200/10 dark:bg-slate-900 dark:border-slate-800/80 dark:shadow-none lg:col-span-4 w-full">
-              {activeIndex === -1 ? (
+          {step === 0 ? (
+            /* Step 0: Patient Identity */
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200/80 dark:border-slate-800 shadow-xl shadow-slate-200/30 dark:shadow-none max-w-xl mx-auto">
+              <div className="text-center mb-8">
+                <div className="w-14 h-14 rounded-2xl bg-teal-50 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center mx-auto mb-4 border border-teal-200/60 dark:border-teal-800/60">
+                  <svg className="w-7 h-7 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white">
+                  Identitas Pengunjung / Pasien
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Silakan isi informasi diri Anda sebelum memulai pengisian gejala klinis.
+                </p>
+              </div>
+
+              <form onSubmit={handleStartQuestions} className="space-y-4">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">
-                    Informasi Tes
-                  </h3>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 space-y-4 leading-relaxed font-medium">
-                    <p>
-                      Tes ini terdiri dari <strong>15 pertanyaan</strong>{" "}
-                      indikator gejala klinis depresi mahasiswa akhir.
-                    </p>
-                    <p>
-                      Pilihlah tingkat keyakinan (Sangat Yakin, Yakin, dsb)
-                      secara jujur sesuai yang Anda rasakan selama 2 minggu
-                      terakhir.
-                    </p>
-                    <p>
-                      Data Anda tersimpan secara terenkripsi untuk kepentingan
-                      diagnosis awal kesehatan mental.
-                    </p>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Nama Lengkap <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={nama}
+                    onChange={(e) => setNama(e.target.value)}
+                    required
+                    placeholder="Masukkan nama lengkap..."
+                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Nomor Identitas / Usia (Opsional)
+                  </label>
+                  <input
+                    type="text"
+                    value={nim}
+                    onChange={(e) => setNim(e.target.value)}
+                    placeholder="misal: Usia 25 tahun atau NIK"
+                    className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Pekerjaan / Lokasi (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      value={prodi}
+                      onChange={(e) => setProdi(e.target.value)}
+                      placeholder="misal: Jakarta"
+                      className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Jenis Kelamin / Ket (Opsional)
+                    </label>
+                    <input
+                      type="text"
+                      value={angkatan}
+                      onChange={(e) => setAngkatan(e.target.value)}
+                      placeholder="Laki-laki / Perempuan"
+                      className="w-full px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:ring-2 focus:ring-teal-500"
+                    />
                   </div>
                 </div>
+
+                <button
+                  type="submit"
+                  className="w-full mt-6 py-4 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black text-sm shadow-lg shadow-teal-600/30 transition hover:scale-[1.02] flex items-center justify-center gap-2"
+                >
+                  <span>Mulai Pengisian Gejala</span>
+                  <svg className="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </button>
+              </form>
+            </div>
+          ) : (
+            /* Step 1: Symptoms Questionnaire */
+            <div className="space-y-8">
+              <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 dark:text-white">
+                    Kuesioner Gejala Diabetes Melitus
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Pilihlah tingkat keyakinan (0.0 - 1.0) untuk setiap gejala klinis yang Anda rasakan.
+                  </p>
+                </div>
+                <div className="px-4 py-2 bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300 rounded-2xl font-bold text-xs border border-teal-200/60 dark:border-teal-800/60 shrink-0">
+                  Pasien: {nama}
+                </div>
+              </div>
+
+              {loadingSymptoms ? (
+                <div className="text-center py-16 text-slate-400">
+                  Memuat data gejala klinis...
+                </div>
               ) : (
-                <>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">
-                    Navigasi Soal
-                  </h3>
+                <div className="space-y-6">
+                  {symptoms.map((symptom) => {
+                    const currentVal = answers[symptom.id] !== undefined ? answers[symptom.id] : 0.0;
+                    return (
+                      <div
+                        key={symptom.id}
+                        className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4"
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="px-3 py-1 bg-teal-600 text-white font-black text-xs rounded-xl shadow-sm">
+                            {symptom.code}
+                          </span>
+                          <div>
+                            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                              {symptom.name}
+                            </h3>
+                            {symptom.description && (
+                              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                {symptom.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
 
-                  <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-5 gap-2">
-                    {symptoms.map((item, idx) => {
-                      const isAnswered = answers[idx] !== undefined;
-                      const isActive = activeIndex === idx;
+                        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 pt-2">
+                          {KONDISI_CHOICES.map((choice) => {
+                            const isSelected = currentVal === choice.nilai;
+                            return (
+                              <button
+                                key={choice.nilai}
+                                type="button"
+                                onClick={() => handleAnswerChange(symptom.id, choice.nilai)}
+                                className={`p-3 rounded-2xl border text-center transition-all duration-200 flex flex-col items-center justify-between ${
+                                  isSelected
+                                    ? "bg-teal-600 text-white border-teal-600 font-bold shadow-md shadow-teal-600/20 scale-[1.02]"
+                                    : "bg-slate-50/50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 border-slate-200/80 dark:border-slate-700/60 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                }`}
+                              >
+                                <span className="text-xs font-semibold mb-1">{choice.kondisi}</span>
+                                <span
+                                  className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${
+                                    isSelected
+                                      ? "bg-white/20 text-white"
+                                      : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                                  }`}
+                                >
+                                  CF: {choice.badge}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
 
-                      return (
-                        <button
-                          key={item.id}
-                          onClick={() => setActiveIndex(idx)}
-                          className={`h-10 rounded-lg text-xs font-mono font-bold transition flex items-center justify-center border ${
-                            isActive
-                              ? "border-teal-500 bg-teal-500 text-white shadow-md shadow-teal-500/10 scale-105"
-                              : isAnswered
-                              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800/40 dark:bg-emerald-950/40 dark:text-emerald-400"
-                              : "border-slate-200 bg-slate-50 text-slate-400 hover:border-slate-350 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-600"
-                          }`}
-                        >
-                          {item.code.replace("D", "")}
-                        </button>
-                      );
-                    })}
+                  <div className="flex justify-between items-center pt-8 border-t border-slate-200 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setStep(0)}
+                      className="px-6 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    >
+                      &larr; Ubah Identitas
+                    </button>
+                    <button
+                      type="button"
+                      disabled={submitting}
+                      onClick={handleSubmitDiagnosis}
+                      className="px-8 py-4 rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-black text-sm shadow-xl shadow-teal-600/30 transition hover:scale-105 disabled:opacity-50 flex items-center gap-2"
+                    >
+                      <span>{submitting ? "Memproses Perhitungan Certainty Factor..." : "Proses Diagnosa Sekarang"}</span>
+                      {!submitting && (
+                        <svg className="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                      )}
+                    </button>
                   </div>
-
-                  <div className="mt-6 pt-6 border-t border-slate-100 dark:border-slate-800 text-xs space-y-3">
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium">
-                      <div className="w-3.5 h-3.5 rounded bg-teal-500 text-white flex items-center justify-center font-bold text-[8px]">
-                        01
-                      </div>
-                      <span>Aktif sekarang</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium">
-                      <div className="w-3.5 h-3.5 rounded bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center font-bold text-[8px]">
-                        &bull;
-                      </div>
-                      <span>Sudah dijawab</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-medium">
-                      <div className="w-3.5 h-3.5 rounded bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 flex items-center justify-center font-bold text-[8px]">
-                        &bull;
-                      </div>
-                      <span>Belum dijawab</span>
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
             </div>
-          </div>
+          )}
         </main>
-
-        {/* Footer Disclaimer */}
-        <footer className="py-4 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 text-center text-xs text-slate-500 dark:text-slate-600 px-6">
-          Disclaimer: Kuesioner ini dirancang untuk mendeteksi dini gejala
-          depresi mahasiswa akhir. Hasil dari sistem pakar ini bukan pengganti
-          diagnosis medis resmi.
-        </footer>
       </div>
     </>
   );

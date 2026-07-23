@@ -14,15 +14,16 @@ return new class extends Migration
         Schema::create('diagnoses', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
-            $table->string('nim');
-            $table->string('prodi');
-            $table->string('angkatan');
-            $table->foreignId('depression_level_id')->nullable()->constrained()->onDelete('set null');
+            $table->string('nim')->nullable();
+            $table->string('prodi')->nullable();
+            $table->string('angkatan')->nullable();
+            $table->foreignId('disease_id')->nullable()->constrained('diseases')->onDelete('set null');
             $table->float('score');
-            $table->string('level_name');
-            $table->string('level_code');
+            $table->string('disease_code');
+            $table->string('disease_name');
             $table->json('answers');
-            $table->json('suggestions');
+            $table->json('solutions')->nullable();
+            $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
     }

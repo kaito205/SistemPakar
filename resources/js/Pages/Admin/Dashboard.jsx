@@ -1,33 +1,32 @@
 import React from "react";
 import AppLayout from "@/Layouts/admin/AppLayout";
-import { Head } from "@inertiajs/react";
+import { Head, Link } from "@inertiajs/react";
 
 export default function Dashboard({
-  stats = { total: 0, m1: 0, m2: 0, m3: 0 },
+  stats = { total: 0, p001: 0, p002: 0, healthy: 0 },
   recentDiagnoses = [],
   symptomsCount = 0,
+  diseasesCount = 0,
   rulesCount = 0,
   trendData = []
 }) {
-  const RECENT_DIAGNOSES = recentDiagnoses;
-  const maxTrendValue = Math.max(...trendData.map(d => d.value), 10);
-  const scale = 200 / maxTrendValue;
-
   return (
     <AppLayout>
-      <Head title="Dashboard Admin" />
+      <Head title="Dashboard Admin - Sistem Pakar Diabetes" />
 
       {/* Welcome Greeting Header */}
       <div className="mb-8 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Overview Panel</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Selamat datang kembali, Administrator. Berikut adalah rangkuman statistik aktivitas diagnosa terkini.
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <span>Dashboard Sistem Pakar Diabetes Melitus</span>
+          </h2>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Selamat datang, Administrator Pakar. Ringkasan aktivitas diagnosa Certainty Factor (CF).
           </p>
         </div>
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-650 dark:text-slate-350 border border-slate-200/50 dark:border-slate-700/50">
-          <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></span>
-          Sistem Aksif & Terpantau
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-xs font-semibold text-teal-700 dark:text-teal-300 border border-teal-200/60 dark:border-teal-800/60">
+          <span className="w-2.5 h-2.5 rounded-full bg-teal-500 animate-pulse"></span>
+          Sistem Pakar Aktif (Algoritma Certainty Factor)
         </div>
       </div>
 
@@ -35,231 +34,186 @@ export default function Dashboard({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Card 1: Total Diagnosa */}
         <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs relative overflow-hidden group hover:scale-[1.02] transition duration-300">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-teal-500/[0.03] rounded-full blur-lg"></div>
           <div className="flex justify-between items-start mb-4">
             <span className="text-slate-400 dark:text-slate-500 text-xs uppercase font-bold tracking-wider">Total Diagnosa</span>
-            <span className="p-2 rounded-xl bg-teal-500/10 text-teal-650 dark:text-teal-400">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            <span className="p-2 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400">
+              <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </span>
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.total}</span>
-            <span className="text-xs font-bold text-teal-600 dark:text-teal-400">log masuk</span>
+            <span className="text-xs font-bold text-teal-600 dark:text-teal-400">kasus terpantau</span>
           </div>
         </div>
 
-        {/* Card 2: Depresi Ringan */}
+        {/* Card 2: Diabetes Tipe 1 (P001) */}
         <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs relative overflow-hidden group hover:scale-[1.02] transition duration-300">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/[0.03] rounded-full blur-lg"></div>
           <div className="flex justify-between items-start mb-4">
-            <span className="text-slate-400 dark:text-slate-500 text-xs uppercase font-bold tracking-wider">Depresi Ringan (M1)</span>
-            <span className="p-2 rounded-xl bg-emerald-500/10 text-emerald-650 dark:text-emerald-400">
-              <span className="font-bold text-xs">M1</span>
+            <span className="text-slate-400 dark:text-slate-500 text-xs uppercase font-bold tracking-wider">Diabetes Tipe 1 (P001)</span>
+            <span className="p-2.5 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 font-bold text-xs">
+              P001
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.m1}</span>
+            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.p001}</span>
             <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
-              {stats.total > 0 ? ((stats.m1 / stats.total) * 100).toFixed(1) : 0}% dari total
+              {stats.total > 0 ? ((stats.p001 / stats.total) * 100).toFixed(1) : 0}% dari total
             </span>
           </div>
         </div>
 
-        {/* Card 3: Depresi Sedang */}
+        {/* Card 3: Diabetes Tipe 2 (P002) */}
         <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs relative overflow-hidden group hover:scale-[1.02] transition duration-300">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-amber-500/[0.03] rounded-full blur-lg"></div>
           <div className="flex justify-between items-start mb-4">
-            <span className="text-slate-400 dark:text-slate-500 text-xs uppercase font-bold tracking-wider">Depresi Sedang (M2)</span>
-            <span className="p-2 rounded-xl bg-amber-500/10 text-amber-650 dark:text-amber-400">
-              <span className="font-bold text-xs">M2</span>
+            <span className="text-slate-400 dark:text-slate-500 text-xs uppercase font-bold tracking-wider">Diabetes Tipe 2 (P002)</span>
+            <span className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold text-xs">
+              P002
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.m2}</span>
+            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.p002}</span>
             <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
-              {stats.total > 0 ? ((stats.m2 / stats.total) * 100).toFixed(1) : 0}% dari total
+              {stats.total > 0 ? ((stats.p002 / stats.total) * 100).toFixed(1) : 0}% dari total
             </span>
           </div>
         </div>
 
-        {/* Card 4: Depresi Berat */}
+        {/* Card 4: Sehat / Normal */}
         <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs relative overflow-hidden group hover:scale-[1.02] transition duration-300">
-          <div className="absolute top-0 right-0 w-20 h-20 bg-rose-500/[0.03] rounded-full blur-lg"></div>
           <div className="flex justify-between items-start mb-4">
-            <span className="text-slate-400 dark:text-slate-500 text-xs uppercase font-bold tracking-wider">Depresi Berat (M3)</span>
-            <span className="p-2 rounded-xl bg-rose-500/10 text-rose-650 dark:text-rose-400">
-              <span className="font-bold text-xs">M3</span>
+            <span className="text-slate-400 dark:text-slate-500 text-xs uppercase font-bold tracking-wider">Sehat / Normal</span>
+            <span className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
+              P000
             </span>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.m3}</span>
-            <span className="text-xs font-bold text-rose-600 dark:text-rose-400">
-              {stats.total > 0 ? ((stats.m3 / stats.total) * 100).toFixed(1) : 0}% dari total
+            <span className="text-3xl font-extrabold text-slate-800 dark:text-white">{stats.healthy}</span>
+            <span className="text-xs font-semibold text-slate-400 dark:text-slate-500">
+              {stats.total > 0 ? ((stats.healthy / stats.total) * 100).toFixed(1) : 0}% dari total
             </span>
           </div>
         </div>
       </div>
 
-      {/* Main Grid: Analytical Chart & Recent Activities */}
+      {/* Main Grid: Recent Diagnoses & Quick Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Trend & Distribution Columns */}
-        <div className="lg:col-span-2 space-y-8">
-          {/* Mock Trend Chart View */}
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="font-bold text-slate-800 dark:text-white">Tren Kunjungan & Diagnosa</h3>
-                <p className="text-xs text-slate-400">Statistik aktivitas harian dalam satu minggu terakhir.</p>
-              </div>
-              <span className="text-xs font-semibold text-teal-600 dark:text-teal-400">Minggu Ini</span>
+        {/* Left Column: Recent Diagnoses Table */}
+        <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-bold text-slate-800 dark:text-white">Riwayat Diagnosa Terbaru</h3>
+              <p className="text-xs text-slate-400">5 aktivitas pemeriksaan pasien terakhir</p>
             </div>
-
-            {/* Premium SVG Mock Chart */}
-            <div className="relative h-60 w-full flex items-end justify-between px-2 pt-6 border-b border-slate-100 dark:border-slate-800">
-              {/* Chart Grid Lines */}
-              <div className="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20 dark:opacity-10 pb-6 pt-6">
-                <div className="w-full border-t border-slate-400"></div>
-                <div className="w-full border-t border-slate-400"></div>
-                <div className="w-full border-t border-slate-400"></div>
-                <div className="w-full border-t border-slate-400"></div>
-              </div>
-
-              {/* Bar Columns */}
-              {trendData.map((day, idx) => (
-                <div key={idx} className="flex flex-col items-center flex-1 group z-10">
-                  <div className="relative w-8 bg-slate-100 dark:bg-slate-800/40 rounded-t-lg flex flex-col justify-end overflow-hidden transition-all duration-300 hover:bg-slate-200/50" style={{ height: `${day.value * scale}px` }}>
-                    <div className="w-full bg-teal-500/80 dark:bg-teal-500/60 rounded-t-lg" style={{ height: `${day.active * scale}px` }}></div>
-                  </div>
-                  <span className="mt-3 text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500">{day.label}</span>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-6 flex items-center justify-center gap-6 text-xs text-slate-500 dark:text-slate-400">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-sm bg-slate-200 dark:bg-slate-800"></span>
-                <span>Total Pengunjung</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-sm bg-teal-500"></span>
-                <span>Penyelesaian Tes</span>
-              </div>
-            </div>
+            <Link
+              href="/admin/riwayat"
+              className="text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline"
+            >
+              Lihat Semua &rarr;
+            </Link>
           </div>
 
-          {/* Recent Log Table */}
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs">
-            <h3 className="font-bold text-slate-800 dark:text-white mb-4">Aktivitas Diagnosa Terbaru</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 uppercase font-bold tracking-wider">
-                    <th className="pb-3 w-[180px]">Nama Mahasiswa</th>
-                    <th className="pb-3 w-[150px]">Waktu Pengujian</th>
-                    <th className="pb-3 w-[100px]">Skor CF</th>
-                    <th className="pb-3">Hasil Kategori</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 uppercase font-semibold">
+                  <th className="py-3 px-4">Nama Pasien</th>
+                  <th className="py-3 px-4">Hasil Diagnosa</th>
+                  <th className="py-3 px-4">Tingkat CF</th>
+                  <th className="py-3 px-4">Waktu</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {recentDiagnoses.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="py-6 text-center text-slate-400">
+                      Belum ada data diagnosa pasien.
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {RECENT_DIAGNOSES.map((d) => (
-                    <tr key={d.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/10 transition-colors">
-                      <td className="py-3 font-bold text-slate-800 dark:text-white">{d.name}</td>
-                      <td className="py-3 text-slate-450 dark:text-slate-400">{d.date}</td>
-                      <td className="py-3 font-mono font-bold text-slate-700 dark:text-slate-300">{d.score.toFixed(1)}%</td>
-                      <td className="py-3">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                          d.type === "M3"
-                            ? "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
-                            : d.type === "M2"
-                            ? "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
-                            : d.type === "M1"
-                            ? "bg-teal-50 text-teal-700 border-teal-100 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20"
-                            : "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-350 dark:border-slate-700"
+                ) : (
+                  recentDiagnoses.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                      <td className="py-3 px-4 font-bold text-slate-800 dark:text-white">
+                        {item.name}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold ${
+                          item.disease_code === 'P001'
+                            ? 'bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/50 dark:text-rose-300'
+                            : item.disease_code === 'P002'
+                            ? 'bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300'
+                            : 'bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300'
                         }`}>
-                          {d.level}
+                          {item.disease_name}
                         </span>
                       </td>
+                      <td className="py-3 px-4 font-extrabold text-teal-600 dark:text-teal-400">
+                        {item.score}%
+                      </td>
+                      <td className="py-3 px-4 text-slate-400">
+                        {item.date}
+                      </td>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  ))
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
 
-        {/* Right Side: Parameter Status & Health */}
-        <div className="space-y-8">
-          {/* Knowledge Base Status Card */}
-          <div className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs">
-            <h3 className="font-bold text-slate-800 dark:text-white mb-6">Status Parameter</h3>
-            
-            <div className="space-y-5">
-              {/* Parameter 1: Gejala */}
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/40 dark:border-slate-800/40">
-                <div className="flex items-center gap-3">
-                  <span className="p-2 rounded-xl bg-teal-500/10 text-teal-650 dark:text-teal-400">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                  </span>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Gejala Depresi</h4>
-                    <p className="text-[10px] text-slate-400">{symptomsCount} Kode Gejala Terdaftar</p>
-                  </div>
+        {/* Right Column: Knowledge Base Statistics */}
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-xs flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Informasi Pakar</h3>
+
+            <div className="space-y-4">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-slate-400 font-medium">Jenis Penyakit</div>
+                  <div className="text-xl font-black text-slate-800 dark:text-white">{diseasesCount} Jenis</div>
                 </div>
-                <span className="font-mono text-sm font-bold text-slate-800 dark:text-white bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-lg">{symptomsCount}</span>
+                <div className="p-3 bg-teal-50 dark:bg-teal-950/60 rounded-xl text-teal-600">
+                  <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.12a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                  </svg>
+                </div>
               </div>
 
-              {/* Parameter 2: Aturan CF */}
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/40 dark:border-slate-800/40">
-                <div className="flex items-center gap-3">
-                  <span className="p-2 rounded-xl bg-teal-500/10 text-teal-650 dark:text-teal-400">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-                    </svg>
-                  </span>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Kombinasi Aturan CF</h4>
-                    <p className="text-[10px] text-slate-400">{rulesCount} Kategori Aturan Pakar</p>
-                  </div>
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-slate-400 font-medium">Indikator Gejala</div>
+                  <div className="text-xl font-black text-slate-800 dark:text-white">{symptomsCount} Gejala</div>
                 </div>
-                <span className="font-mono text-sm font-bold text-slate-800 dark:text-white bg-slate-200/50 dark:bg-slate-800 px-2 py-0.5 rounded-lg">{rulesCount}</span>
+                <div className="p-3 bg-teal-50 dark:bg-teal-950/60 rounded-xl text-teal-600">
+                  <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
               </div>
 
-              {/* Parameter 3: Keadaan Sistem */}
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/40 dark:border-slate-800/40">
-                <div className="flex items-center gap-3">
-                  <span className="p-2 rounded-xl bg-teal-500/10 text-teal-650 dark:text-teal-400">
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                    </svg>
-                  </span>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">Keamanan Akses</h4>
-                    <p className="text-[10px] text-slate-400">Enkripsi Rute Terproteksi</p>
-                  </div>
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-slate-400 font-medium">Aturan Relasi &amp; CF Pakar</div>
+                  <div className="text-xl font-black text-slate-800 dark:text-white">{rulesCount} Aturan</div>
                 </div>
-                <span className="text-[10px] font-extrabold text-teal-600 dark:text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded-lg">AKTIF</span>
+                <div className="p-3 bg-teal-50 dark:bg-teal-950/60 rounded-xl text-teal-600">
+                  <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Quick Support Actions */}
-          <div className="p-6 bg-slate-900 text-white rounded-3xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-28 h-28 bg-teal-500/10 rounded-full blur-xl"></div>
-            <h3 className="font-extrabold text-lg mb-2">Butuh Bantuan Teknis?</h3>
-            <p className="text-xs text-slate-400 leading-relaxed mb-6">
-              Jika terdapat kendala sinkronisasi data pakar atau penyesuaian aturan klinis depresi, silakan buka dokumentasi manual pengembang.
-            </p>
-            <a
-              href="https://github.com/kaito205/SistemPakar"
-              target="_blank"
-              className="inline-flex w-full items-center justify-center py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs transition duration-250 focus:outline-none"
+          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 text-center">
+            <Link
+              href="/admin/aturan"
+              className="w-full inline-block py-2.5 px-4 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-semibold text-xs transition"
             >
-              Buka Repositori Proyek
-            </a>
+              Kelola Aturan Basis Pengetahuan &rarr;
+            </Link>
           </div>
         </div>
       </div>

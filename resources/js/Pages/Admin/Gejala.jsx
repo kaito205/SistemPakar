@@ -6,26 +6,21 @@ export default function Gejala({ symptoms = [] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
   
-  // Form states
   const [currentId, setCurrentId] = useState(null);
   const [currentCode, setCurrentCode] = useState("");
   const [currentName, setCurrentName] = useState("");
-  const [currentWeight, setCurrentWeight] = useState(0.2);
   const [currentDesc, setCurrentDesc] = useState("");
 
   const openAddModal = () => {
     setModalMode("add");
     setCurrentId(null);
     
-    // Dynamically calculate next symptom code (e.g. D16)
     const maxCodeNumber = symptoms.reduce((max, s) => {
-      const num = parseInt(s.code.substring(1));
+      const num = parseInt(s.code.replace(/\D/g, ''));
       return !isNaN(num) && num > max ? num : max;
     }, 0);
-    setCurrentCode(`D${maxCodeNumber + 1}`);
-    
+    setCurrentCode(`G${String(maxCodeNumber + 1).padStart(3, '0')}`);
     setCurrentName("");
-    setCurrentWeight(0.2);
     setCurrentDesc("");
     setIsModalOpen(true);
   };
@@ -35,8 +30,7 @@ export default function Gejala({ symptoms = [] }) {
     setCurrentId(gejala.id);
     setCurrentCode(gejala.code);
     setCurrentName(gejala.name);
-    setCurrentWeight(gejala.weight);
-    setCurrentDesc(gejala.desc);
+    setCurrentDesc(gejala.desc || "");
     setIsModalOpen(true);
   };
 
@@ -51,7 +45,6 @@ export default function Gejala({ symptoms = [] }) {
       router.post("/admin/gejala", {
         code: currentCode,
         name: currentName,
-        weight: parseFloat(currentWeight),
         desc: currentDesc
       }, {
         onSuccess: () => closeModal()
@@ -59,7 +52,6 @@ export default function Gejala({ symptoms = [] }) {
     } else {
       router.put(`/admin/gejala/${currentId}`, {
         name: currentName,
-        weight: parseFloat(currentWeight),
         desc: currentDesc
       }, {
         onSuccess: () => closeModal()
@@ -89,170 +81,148 @@ export default function Gejala({ symptoms = [] }) {
 
   return (
     <AppLayout>
-      <Head title="Kelola Gejala" />
+      <Head title="Kelola Gejala - Admin Sistem Pakar" />
 
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Kelola Data Gejala</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Manajemen indikator gejala depresi beserta pembobotan pakar Certainty Factor (CF).
-          </p>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <span className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 border border-teal-200/60 dark:border-teal-800/60">
+                <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </span>
+              <span>Kelola Data Gejala Diabetes</span>
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+              Daftar indikator gejala klinis Diabetes Melitus (G001 - G026) sesuai acuan jurnal medis.
+            </p>
+          </div>
+          <button
+            onClick={openAddModal}
+            className="px-4 py-2.5 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-medium rounded-xl shadow-lg shadow-teal-600/20 transition duration-200 flex items-center justify-center gap-2 text-sm"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Tambah Gejala
+          </button>
         </div>
-        <button
-          onClick={openAddModal}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-teal-500/20"
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Tambah Gejala
-        </button>
-      </div>
 
-      {/* Symptoms Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/50 shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm text-slate-500 dark:text-slate-400">
-            <thead className="bg-slate-50 dark:bg-slate-800/40 text-xs uppercase text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th scope="col" className="px-6 py-4 font-bold w-[100px]">Kode</th>
-                <th scope="col" className="px-6 py-4 font-bold w-[220px]">Nama Gejala</th>
-                <th scope="col" className="px-6 py-4 font-bold w-[140px]">Bobot Pakar</th>
-                <th scope="col" className="px-6 py-4 font-bold">Deskripsi Klinis</th>
-                <th scope="col" className="px-6 py-4 font-bold text-right w-[150px]">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {symptoms.map((g) => (
-                <tr key={g.code} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                  <td className="px-6 py-4 font-mono font-bold text-teal-600 dark:text-teal-400 text-sm">
-                    {g.code}
-                  </td>
-                  <td className="px-6 py-4 font-bold text-slate-800 dark:text-white">
-                    {g.name}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-100 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20 font-mono">
-                      {g.weight.toFixed(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-xs sm:text-sm max-w-[280px] whitespace-normal break-words text-slate-650 dark:text-slate-400">
-                    {g.desc}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-3">
+        {/* Table Container */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr className="bg-slate-50/70 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800 font-semibold uppercase text-[11px] tracking-wider">
+                  <th className="py-4 px-6">Kode</th>
+                  <th className="py-4 px-6">Nama Gejala Klinis</th>
+                  <th className="py-4 px-6">Deskripsi / Penjelasan</th>
+                  <th className="py-4 px-6 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                {symptoms.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                    <td className="py-4 px-6">
+                      <span className="inline-block px-2.5 py-1 bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 font-bold text-xs rounded-lg border border-teal-200/60 dark:border-teal-800/60">
+                        {item.code}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 font-semibold text-slate-800 dark:text-white">
+                      {item.name}
+                    </td>
+                    <td className="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 max-w-md">
+                      {item.desc || "-"}
+                    </td>
+                    <td className="py-4 px-6 text-right space-x-2">
                       <button
-                        onClick={() => openEditModal(g)}
-                        className="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 font-semibold"
+                        onClick={() => openEditModal(item)}
+                        className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-600 dark:bg-amber-950/40 dark:hover:bg-amber-900/50 dark:text-amber-400 rounded-lg text-xs font-medium transition"
                       >
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(g.id, g.code)}
-                        className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-350 font-semibold"
+                        onClick={() => handleDelete(item.id, item.code)}
+                        className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 dark:text-rose-400 rounded-lg text-xs font-medium transition"
                       >
                         Hapus
                       </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      {/* TAMBAH / EDIT MODAL */}
+      {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-999 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="w-full max-w-lg overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-2xl dark:bg-slate-900 dark:border-slate-800">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
-              <h3 className="text-lg font-bold text-slate-800 dark:text-white">
-                {modalMode === "add" ? "Tambah Data Gejala" : `Edit Gejala ${currentCode}`}
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+              <h3 className="font-bold text-slate-800 dark:text-white">
+                {modalMode === "add" ? "Tambah Gejala Baru" : `Edit Gejala ${currentCode}`}
               </h3>
-              <button
-                onClick={closeModal}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+              <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 text-xl font-bold">
+                &times;
               </button>
             </div>
-
-            {/* Modal Form */}
             <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
-                    Kode Gejala
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    disabled={modalMode === "edit"}
-                    value={currentCode}
-                    onChange={(e) => setCurrentCode(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 font-mono font-bold dark:border-slate-800 dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:border-teal-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
-                    Bobot CF Pakar
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="-1"
-                    max="1"
-                    required
-                    value={currentWeight}
-                    onChange={(e) => setCurrentWeight(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:border-teal-500"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Kode Gejala
+                </label>
+                <input
+                  type="text"
+                  value={currentCode}
+                  onChange={(e) => setCurrentCode(e.target.value)}
+                  disabled={modalMode === "edit"}
+                  required
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-teal-500 disabled:opacity-60"
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Nama Gejala
                 </label>
                 <input
                   type="text"
-                  required
-                  placeholder="Misal: Perasaan Sedih, Hilang Energi"
                   value={currentName}
                   onChange={(e) => setCurrentName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:border-teal-500"
+                  required
+                  placeholder="misal: Sering merasa haus (polidipsi)"
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-teal-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 dark:text-slate-400 mb-2">
-                  Deskripsi Klinis
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Deskripsi / Penjelasan
                 </label>
                 <textarea
                   rows="3"
-                  placeholder="Penjelasan medis atau ciri perilaku gejala..."
                   value={currentDesc}
                   onChange={(e) => setCurrentDesc(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950 text-slate-800 dark:text-white focus:outline-none focus:border-teal-500"
-                />
+                  placeholder="Penjelasan klinis gejala..."
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-sm focus:ring-2 focus:ring-teal-500"
+                ></textarea>
               </div>
 
-              {/* Form Actions */}
-              <div className="pt-4 flex justify-end gap-3 border-t border-slate-100 dark:border-slate-850">
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={closeModal}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-850 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-650 dark:text-slate-300 font-semibold text-sm transition-all focus:outline-none"
+                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 rounded-xl text-sm font-medium"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm transition-all focus:outline-none"
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl text-sm font-medium shadow-md shadow-teal-600/20"
                 >
                   Simpan
                 </button>
@@ -262,36 +232,33 @@ export default function Gejala({ symptoms = [] }) {
         </div>
       )}
 
-      {/* Custom Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-2xl dark:bg-slate-900 dark:border-slate-800 p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <span className="p-3 rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 shrink-0">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-slate-850 dark:text-white">Konfirmasi Hapus</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Tindakan ini tidak dapat dibatalkan.</p>
-              </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-sm p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-4 text-xl">
+              <svg className="w-6 h-6 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-350 leading-relaxed mb-6">
-              Apakah Anda yakin ingin menghapus data gejala <span className="font-extrabold text-slate-850 dark:text-white">"{deleteCode}"</span>?
+            <h3 className="font-bold text-slate-800 dark:text-white text-lg mb-2">
+              Hapus Gejala {deleteCode}?
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 text-xs mb-6">
+              Tindakan ini tidak dapat dibatalkan. Seluruh aturan CF pakar yang berhubungan dengan gejala ini juga akan terhapus.
             </p>
-            <div className="flex justify-end gap-3">
+            <div className="flex gap-3 justify-center">
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-850 transition cursor-pointer"
+                className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl text-sm font-medium"
               >
                 Batal
               </button>
               <button
                 onClick={executeDelete}
-                className="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm shadow-lg shadow-rose-500/20 transition cursor-pointer"
+                className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-medium shadow-md shadow-rose-600/20"
               >
-                Ya, Hapus
+                Hapus Permanen
               </button>
             </div>
           </div>

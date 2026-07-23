@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('rules', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('depression_level_id')->constrained()->onDelete('cascade');
-            $table->json('symptom_ids');
-            $table->string('logic')->default('AND');
+            $table->foreignId('disease_id')->constrained('diseases')->onDelete('cascade');
+            $table->foreignId('symptom_id')->constrained('symptoms')->onDelete('cascade');
+            $table->decimal('cf_pakar', 3, 2)->default(0.00);
             $table->timestamps();
         });
     }

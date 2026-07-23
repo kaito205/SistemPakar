@@ -16,8 +16,7 @@ class SymptomController extends Controller
                 'id' => $s->id,
                 'code' => $s->code,
                 'name' => $s->name,
-                'weight' => (float)$s->expert_cf,
-                'desc' => $s->suggestion,
+                'desc' => $s->description,
             ];
         });
 
@@ -31,15 +30,13 @@ class SymptomController extends Controller
         $validated = $request->validate([
             'code' => 'required|string|unique:symptoms,code|max:20',
             'name' => 'required|string|max:255',
-            'weight' => 'required|numeric|min:-1|max:1',
-            'desc' => 'required|string',
+            'desc' => 'nullable|string',
         ]);
 
         Symptom::create([
             'code' => $validated['code'],
             'name' => $validated['name'],
-            'expert_cf' => $validated['weight'],
-            'suggestion' => $validated['desc'],
+            'description' => $validated['desc'],
         ]);
 
         return redirect()->back()->with('success', 'Gejala baru berhasil ditambahkan.');
@@ -49,16 +46,14 @@ class SymptomController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'weight' => 'required|numeric|min:-1|max:1',
-            'desc' => 'required|string',
+            'desc' => 'nullable|string',
         ]);
 
         $symptom = Symptom::findOrFail($id);
 
         $symptom->update([
             'name' => $validated['name'],
-            'expert_cf' => $validated['weight'],
-            'suggestion' => $validated['desc'],
+            'description' => $validated['desc'],
         ]);
 
         return redirect()->back()->with('success', 'Gejala berhasil diperbarui.');

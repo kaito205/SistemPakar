@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\DepressionLevel;
+use App\Models\Diagnosis;
+use App\Models\Disease;
 use App\Models\Rule;
 use App\Models\Symptom;
 use Illuminate\Http\Request;
@@ -20,182 +21,130 @@ class DiagnosisController extends Controller
         try {
             $validated = $request->validate([
                 'nama' => 'required|string|max:255',
-                'nim' => 'required|string|max:50',
-                'prodi' => 'required|string|max:255',
-                'angkatan' => 'required|string|max:10',
+                'nim' => 'nullable|string|max:50',
+                'prodi' => 'nullable|string|max:255',
+                'angkatan' => 'nullable|string|max:10',
                 'responses' => 'required|array',
                 'responses.*.symptom_id' => 'required|exists:symptoms,id',
-                'responses.*.user_cf' => 'required|numeric|min:-1|max:1',
+                'responses.*.user_cf' => 'required|numeric|min:0|max:1',
             ]);
 
-            $responses = collect($validated['responses']);
-            $rules = Rule::with('depressionLevel')->get();
+            $userResponses = collect($validated['responses'])->keyBy('symptom_id');
+            $diseases = Disease::with(['rules.symptom'])->orderBy('code')->get();
 
             $results = [];
 
-            foreach ($rules as $rule) {
-                $symptomCfs = [];
+            foreach ($diseases as $disease) {
+                $matchedSymptoms = [];
+                $cfCalculatedList = [];
 
-                foreach ($rule->symptom_ids as $symptomId) {
-                    $response = $responses->firstWhere('symptom_id', $symptomId);
-                    $symptom = Symptom::find($symptomId);
+                foreach ($disease->rules as $rule) {
+                    $userRes = $userResponses->get($rule->symptom_id);
+                    $userCf = $userRes ? (float)$userRes['user_cf'] : 0.0;
 
-                    if ($response && $symptom) {
-                        $cfHe = $response['user_cf'] * $symptom->expert_cf;
-                        $symptomCfs[] = $cfHe;
-                    }
-                }
+                    if ($userCf > 0) {
+                        $cfPakar = (float)$rule->cf_pakar;
+                        $cfCombinePart = $userCf * $cfPakar;
 
-                if (empty($symptomCfs)) {
-                    continue;
-                }
-
-                $ruleCf = $this->calculateRuleCf($symptomCfs, $rule->logic);
-
-                if ($ruleCf > 0) {
-                    $depressionLevelId = $rule->depression_level_id;
-
-                    if (!isset($results[$depressionLevelId])) {
-                        $results[$depressionLevelId] = [
-                            'depression_level' => $rule->depressionLevel,
-                            'cf' => 0,
-                            'matched_symptoms' => [],
+                        $cfCalculatedList[] = $cfCombinePart;
+                        $matchedSymptoms[] = [
+                            'symptom_code' => $rule->symptom->code,
+                            'symptom_name' => $rule->symptom->name,
+                            'user_cf' => $userCf,
+                            'cf_pakar' => $cfPakar,
+                            'cf_he' => round($cfCombinePart, 4),
                         ];
                     }
-
-                    $results[$depressionLevelId]['cf'] = $this->combineCf(
-                        $results[$depressionLevelId]['cf'],
-                        $ruleCf
-                    );
-
-                    $results[$depressionLevelId]['matched_symptoms'] = array_merge(
-                        $results[$depressionLevelId]['matched_symptoms'],
-                        $rule->symptom_ids
-                    );
                 }
+
+                // Combine CFs using Certainty Factor formula: CF_comb = CF_old + CF_new * (1 - CF_old)
+                $combinedCf = 0.0;
+                if (!empty($cfCalculatedList)) {
+                    $combinedCf = $cfCalculatedList[0];
+                    for ($i = 1; $i < count($cfCalculatedList); $i++) {
+                        $nextCf = $cfCalculatedList[$i];
+                        $combinedCf = $combinedCf + $nextCf * (1 - $combinedCf);
+                    }
+                }
+
+                $percentage = round($combinedCf * 100, 2);
+
+                $results[] = [
+                    'disease_id' => $disease->id,
+                    'disease_code' => $disease->code,
+                    'disease_name' => $disease->name,
+                    'description' => $disease->description,
+                    'solution' => $disease->solution,
+                    'cf' => round($combinedCf, 4),
+                    'percentage' => $percentage,
+                    'matched_symptoms' => $matchedSymptoms,
+                ];
             }
 
+            // Sort results by CF percentage descending
             usort($results, function ($a, $b) {
-                return $b['cf'] <=> $a['cf'];
+                return $b['percentage'] <=> $a['percentage'];
             });
 
-            $matchedSymptoms = [];
-            foreach ($responses as $response) {
-                if ($response['user_cf'] > 0) {
-                    $symptom = Symptom::find($response['symptom_id']);
-                    if ($symptom) {
-                        $matchedSymptoms[] = [
-                            'symptom' => $symptom,
-                            'user_cf' => $response['user_cf'],
-                            'calculated_cf' => $response['user_cf'] * $symptom->expert_cf,
+            $topResult = $results[0] ?? null;
+
+            if ($topResult && $topResult['percentage'] > 0) {
+                $finalDiseaseId = $topResult['disease_id'];
+                $finalDiseaseCode = $topResult['disease_code'];
+                $finalDiseaseName = $topResult['disease_name'];
+                $finalScore = $topResult['percentage'];
+                $solutionsList = array_values(array_filter(explode("\n", $topResult['solution'])));
+            } else {
+                $finalDiseaseId = null;
+                $finalDiseaseCode = 'P000';
+                $finalDiseaseName = 'Sehat / Tidak Terdeteksi Diabetes';
+                $finalScore = 0.0;
+                $solutionsList = [
+                    'Tidak terdeteksi gejala signifikan diabetes melitus.',
+                    'Tetap jaga pola makan seimbang, kurangi konsumsi gula berlebih, dan olahraga teratur.'
+                ];
+            }
+
+            // Build dictionary of user answers
+            $answersDict = [];
+            foreach ($userResponses as $symptomId => $resp) {
+                if ($resp['user_cf'] > 0) {
+                    $sym = Symptom::find($symptomId);
+                    if ($sym) {
+                        $answersDict[$sym->code] = [
+                            'name' => $sym->name,
+                            'user_cf' => (float)$resp['user_cf'],
                         ];
                     }
-                }
-            }
-
-            // Determine final result details for DB storage
-            $highestLevelId = null;
-            $levelCode = 'Normal';
-            $levelName = 'Normal (Tidak Depresi)';
-            $score = 0.0;
-
-            if (!empty($results)) {
-                $highest = $results[0];
-                $highestLevelId = $highest['depression_level']->id;
-                $levelCode = $highest['depression_level']->code;
-                $score = (float)($highest['cf'] * 100);
-            }
-
-            $levelNames = [
-                'M1' => 'Depresi Ringan (M1)',
-                'M2' => 'Depresi Sedang (M2)',
-                'M3' => 'Depresi Berat (M3)',
-                'Normal' => 'Normal (Tidak Depresi)'
-            ];
-            $levelName = $levelNames[$levelCode] ?? $levelName;
-
-            // Compile answers dictionary for easy display on Admin side
-            $answers = [];
-            foreach ($responses as $response) {
-                if ($response['user_cf'] > 0) {
-                    $symptom = Symptom::find($response['symptom_id']);
-                    if ($symptom) {
-                        $answers[$symptom->code] = (float)$response['user_cf'];
-                    }
-                }
-            }
-
-            // Compile recommendations/suggestions
-            $suggestions = [];
-            foreach ($matchedSymptoms as $item) {
-                if (!empty($item['symptom']->suggestion)) {
-                    $suggestions[] = $item['symptom']->suggestion;
                 }
             }
 
             // Save to database
-            \App\Models\Diagnosis::create([
+            $diagnosisLog = Diagnosis::create([
                 'nama' => $validated['nama'],
-                'nim' => $validated['nim'],
-                'prodi' => $validated['prodi'],
-                'angkatan' => $validated['angkatan'],
-                'depression_level_id' => $highestLevelId,
-                'score' => $score,
-                'level_name' => $levelName,
-                'level_code' => $levelCode,
-                'answers' => $answers,
-                'suggestions' => $suggestions,
+                'nim' => $validated['nim'] ?? '-',
+                'prodi' => $validated['prodi'] ?? '-',
+                'angkatan' => $validated['angkatan'] ?? '-',
+                'disease_id' => $finalDiseaseId,
+                'score' => $finalScore,
+                'disease_code' => $finalDiseaseCode,
+                'disease_name' => $finalDiseaseName,
+                'answers' => $answersDict,
+                'solutions' => $solutionsList,
             ]);
 
             return response()->json([
-                'results' => array_values($results),
-                'matched_symptoms' => $matchedSymptoms,
+                'success' => true,
+                'diagnosis_id' => $diagnosisLog->id,
+                'top_result' => $topResult,
+                'results' => $results,
+                'solutions' => $solutionsList,
             ]);
         } catch (\Exception $e) {
             return response()->json([
-                'message' => 'Error processing diagnosis: ' . $e->getMessage()
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memproses diagnosa: ' . $e->getMessage()
             ], 500);
-        }
-    }
-
-    private function calculateRuleCf(array $symptomCfs, string $logic): float
-    {
-        if (empty($symptomCfs)) {
-            return 0.0;
-        }
-
-        // According to the Certainty Factor research paper, symptom CFs 
-        // are combined using the CF combination formula recursively.
-        $combined = $symptomCfs[0];
-        for ($i = 1; $i < count($symptomCfs); $i++) {
-            $next = $symptomCfs[$i];
-            
-            if ($combined >= 0 && $next >= 0) {
-                $combined = $combined + $next * (1 - $combined);
-            } elseif ($combined < 0 && $next < 0) {
-                $combined = $combined + $next * (1 + $combined);
-            } else {
-                $denom = 1 - min(abs($combined), abs($next));
-                if ($denom == 0) {
-                    $combined = 1.0;
-                } else {
-                    $combined = ($combined + $next) / $denom;
-                }
-            }
-        }
-
-        return $combined;
-    }
-
-    private function combineCf(float $oldCf, float $newCf): float
-    {
-        if ($oldCf >= 0 && $newCf >= 0) {
-            return $oldCf + $newCf * (1 - $oldCf);
-        } elseif ($oldCf < 0 && $newCf < 0) {
-            return $oldCf + $newCf * (1 + $oldCf);
-        } else {
-            $denom = 1 - min(abs($oldCf), abs($newCf));
-            return $denom == 0 ? 1.0 : ($oldCf + $newCf) / $denom;
         }
     }
 }

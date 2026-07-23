@@ -31,12 +31,17 @@ const navItems: NavItem[] = [
         path: "/dashboard",
     },
     {
+        icon: <BoxCubeIcon />,
+        name: "Kelola Penyakit",
+        path: "/admin/penyakit",
+    },
+    {
         icon: <ListIcon />,
         name: "Kelola Gejala",
         path: "/admin/gejala",
     },
     {
-        icon: <BoxCubeIcon />,
+        icon: <PieChartIcon />,
         name: "Aturan CF Pakar",
         path: "/admin/aturan",
     },
@@ -44,11 +49,6 @@ const navItems: NavItem[] = [
         icon: <TableIcon />,
         name: "Riwayat Diagnosa",
         path: "/admin/riwayat",
-    },
-    {
-        icon: <PlugInIcon />,
-        name: "Kelola Tim",
-        path: "/admin/tim",
     },
 ];
 
@@ -299,14 +299,14 @@ const AppSidebar: React.FC = () => {
                 }`}
             >
                 <Link href="/" className="flex items-center gap-3">
-                    <img
-                        src="/img/logo.png?v=2"
-                        alt="DepresiCheck Logo"
-                        className="w-9 h-9 object-contain"
-                    />
+                    <div className="w-9 h-9 rounded-xl bg-teal-600 flex items-center justify-center text-white shadow-md shadow-teal-600/30 shrink-0">
+                        <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.12a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                        </svg>
+                    </div>
                     {(isExpanded || isHovered || isMobileOpen) && (
-                        <span className="text-lg font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-350 bg-clip-text text-transparent">
-                            DepresiCheck
+                        <span className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+                            Diabe<span className="text-teal-600 dark:text-teal-400">CF</span>
                         </span>
                     )}
                 </Link>

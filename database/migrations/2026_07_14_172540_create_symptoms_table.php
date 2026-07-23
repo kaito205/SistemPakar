@@ -15,8 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('code')->unique();
             $table->string('name');
-            $table->decimal('expert_cf', 3, 2)->default(0);
-            $table->text('suggestion')->nullable();
+            $table->text('description')->nullable();
             $table->timestamps();
         });
     }

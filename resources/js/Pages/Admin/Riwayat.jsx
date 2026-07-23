@@ -4,293 +4,178 @@ import { Head, router } from "@inertiajs/react";
 
 export default function Riwayat({ logs = [] }) {
   const [selectedLog, setSelectedLog] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterLevel, setFilterLevel] = useState("all");
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const openDetailModal = (log) => {
+  const openDetail = (log) => {
     setSelectedLog(log);
-    setIsModalOpen(true);
+    setIsDetailOpen(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
+  const closeDetail = () => {
+    setIsDetailOpen(false);
     setSelectedLog(null);
   };
 
-  const [deleteId, setDeleteId] = useState(null);
-  const [deleteIndex, setDeleteIndex] = useState("");
-  const [deleteName, setDeleteName] = useState("");
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-  const handleDelete = (id, number, name) => {
-    setDeleteId(id);
-    setDeleteIndex(number);
-    setDeleteName(name);
-    setIsDeleteModalOpen(true);
+  const handleDelete = (id) => {
+    if (confirm("Apakah Anda yakin ingin menghapus catatan riwayat diagnosa ini?")) {
+      router.delete(`/admin/riwayat/${id}`);
+    }
   };
-
-  const executeDelete = () => {
-    router.delete(`/admin/riwayat/${deleteId}`, {
-      onSuccess: () => {
-        setIsDeleteModalOpen(false);
-        setDeleteId(null);
-        setDeleteIndex("");
-        setDeleteName("");
-      }
-    });
-  };
-
-  // Filter & Search logic
-  const filteredLogs = logs.filter((log) => {
-    const matchesSearch =
-      log.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter =
-      filterLevel === "all" || log.type === filterLevel;
-
-    return matchesSearch && matchesFilter;
-  });
 
   return (
     <AppLayout>
-      <Head title="Riwayat Diagnosa" />
+      <Head title="Riwayat Diagnosa - Admin Sistem Pakar" />
 
-      {/* Header Section */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Riwayat Diagnosa Pengguna</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-          Daftar log data hasil pengujian Certainty Factor mahasiswa beserta resep saran penanganan pakar.
-        </p>
-      </div>
-
-      {/* Search & Filter Bar */}
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="relative flex-1 max-w-md">
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-slate-400">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </span>
-          <input
-            type="text"
-            placeholder="Cari nama atau email mahasiswa..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-white dark:border-slate-850 dark:bg-slate-900/50 text-slate-800 dark:text-white text-sm focus:outline-none focus:border-teal-500"
-          />
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+              <span className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 border border-teal-200/60 dark:border-teal-800/60">
+                <svg className="w-5 h-5 fill-none stroke-current" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </span>
+              <span>Riwayat Diagnosa Pasien</span>
+            </h1>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+              Daftar rekam jejak pemeriksaan diagnosa penyakit Diabetes Melitus yang telah dilakukan pengunjung.
+            </p>
+          </div>
+          <div className="px-3.5 py-1.5 bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400 rounded-xl font-bold text-xs border border-teal-200/60 dark:border-teal-800/60">
+            Total {logs.length} Rekam Diagnosa
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-400">Filter Hasil:</label>
-          <select
-            value={filterLevel}
-            onChange={(e) => setFilterLevel(e.target.value)}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white dark:border-slate-850 dark:bg-slate-900 text-slate-800 dark:text-white text-sm focus:outline-none focus:border-teal-500"
-          >
-            <option value="all">Semua Kategori</option>
-            <option value="M1">Depresi Ringan (M1)</option>
-            <option value="M2">Depresi Sedang (M2)</option>
-            <option value="M3">Depresi Berat (M3)</option>
-            <option value="Normal">Normal</option>
-          </select>
-        </div>
-      </div>
-
-      {/* History Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900/50 shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm text-slate-500 dark:text-slate-400">
-            <thead className="bg-slate-50 dark:bg-slate-800/40 text-xs uppercase text-slate-700 dark:text-slate-300 font-bold border-b border-slate-200 dark:border-slate-800">
-              <tr>
-                <th scope="col" className="px-6 py-4 font-bold w-[80px]">No</th>
-                <th scope="col" className="px-6 py-4 font-bold w-[240px]">Mahasiswa</th>
-                <th scope="col" className="px-6 py-4 font-bold w-[180px]">Tanggal Tes</th>
-                <th scope="col" className="px-6 py-4 font-bold w-[120px]">Skor CF</th>
-                <th scope="col" className="px-6 py-4 font-bold">Hasil Kategori</th>
-                <th scope="col" className="px-6 py-4 font-bold text-right w-[150px]">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-800">
-              {filteredLogs.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="px-6 py-10 text-center text-slate-450 italic">
-                    Tidak ada riwayat diagnosa yang cocok dengan pencarian Anda.
-                  </td>
+        {/* Table */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-sm border-collapse">
+              <thead>
+                <tr className="bg-slate-50/70 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800 font-semibold uppercase text-[11px] tracking-wider">
+                  <th className="py-4 px-6">Nama Pasien / Pengunjung</th>
+                  <th className="py-4 px-6">Identitas / Informasi</th>
+                  <th className="py-4 px-6">Hasil Diagnosa</th>
+                  <th className="py-4 px-6">Nilai CF Kepastian</th>
+                  <th className="py-4 px-6">Tanggal Diagnosa</th>
+                  <th className="py-4 px-6 text-right">Aksi</th>
                 </tr>
-              ) : (
-                filteredLogs.map((log, index) => (
-                  <tr key={log.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
-                    <td className="px-6 py-4 font-bold text-slate-550 dark:text-slate-400 font-mono">
-                      {index + 1}
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
+                {logs.length === 0 ? (
+                  <tr>
+                    <td colSpan="6" className="py-8 text-center text-slate-400 text-sm">
+                      Belum ada riwayat diagnosa yang tersimpan.
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="font-bold text-slate-800 dark:text-white">{log.name}</span>
-                        <span className="text-xs text-slate-400">{log.email}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-slate-450">
-                      {log.date}
-                    </td>
-                    <td className="px-6 py-4 font-mono font-bold text-slate-700 dark:text-slate-300">
-                      {log.score.toFixed(1)}%
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${
-                        log.type === "M3"
-                          ? "bg-rose-50 text-rose-700 border-rose-100 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20"
-                          : log.type === "M2"
-                          ? "bg-amber-50 text-amber-700 border-amber-100 dark:bg-amber-500/10 dark:text-amber-400 dark:border-amber-500/20"
-                          : log.type === "M1"
-                          ? "bg-teal-50 text-teal-700 border-teal-100 dark:bg-teal-500/10 dark:text-teal-400 dark:border-teal-500/20"
-                          : "bg-slate-50 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-350 dark:border-slate-700"
-                      }`}>
-                        {log.level}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex justify-end gap-3">
+                  </tr>
+                ) : (
+                  logs.map((item) => (
+                    <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition">
+                      <td className="py-4 px-6 font-bold text-slate-800 dark:text-white">
+                        {item.name}
+                      </td>
+                      <td className="py-4 px-6 text-xs text-slate-500 dark:text-slate-400">
+                        {item.identity}
+                      </td>
+                      <td className="py-4 px-6">
+                        <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                          item.disease_code === 'P001'
+                            ? 'bg-rose-50 text-rose-600 border border-rose-200 dark:bg-rose-950/50 dark:text-rose-300'
+                            : item.disease_code === 'P002'
+                            ? 'bg-amber-50 text-amber-600 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-300'
+                            : 'bg-emerald-50 text-emerald-600 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300'
+                        }`}>
+                          {item.disease_name}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 font-extrabold text-teal-600 dark:text-teal-400">
+                        {item.score}%
+                      </td>
+                      <td className="py-4 px-6 text-xs text-slate-400">
+                        {item.date}
+                      </td>
+                      <td className="py-4 px-6 text-right space-x-2">
                         <button
-                          onClick={() => openDetailModal(log)}
-                          className="text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 font-semibold"
+                          onClick={() => openDetail(item)}
+                          className="px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-600 dark:bg-teal-950/40 dark:hover:bg-teal-900/50 dark:text-teal-400 rounded-lg text-xs font-medium transition"
                         >
                           Detail
                         </button>
                         <button
-                          onClick={() => handleDelete(log.id, index + 1, log.name)}
-                          className="text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-350 font-semibold"
+                          onClick={() => handleDelete(item.id)}
+                          className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 dark:bg-rose-950/40 dark:hover:bg-rose-900/50 dark:text-rose-400 rounded-lg text-xs font-medium transition"
                         >
                           Hapus
                         </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      {/* DETAIL LOOKUP MODAL */}
-      {isModalOpen && selectedLog && (
-        <div className="fixed inset-0 z-999 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="w-full max-w-2xl overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-2xl dark:bg-slate-900 dark:border-slate-800">
-            {/* Modal Header */}
-            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/20">
-              <div>
-                <h3 className="text-lg font-bold text-slate-800 dark:text-white">
-                  Rincian Diagnosa #{selectedLog.id}
-                </h3>
-                <p className="text-xs text-slate-400">{selectedLog.name} &bull; {selectedLog.date}</p>
-              </div>
-              <button
-                onClick={closeModal}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+      {/* Detail Modal */}
+      {isDetailOpen && selectedLog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-xl overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50">
+              <h3 className="font-bold text-slate-800 dark:text-white">
+                Detail Diagnosa: {selectedLog.name}
+              </h3>
+              <button onClick={closeDetail} className="text-slate-400 hover:text-slate-600 text-xl font-bold">
+                &times;
               </button>
             </div>
-
-            {/* Modal Content */}
-            <div className="p-6 space-y-6 max-h-[450px] overflow-y-auto pr-2 no-scrollbar">
-              {/* Score summary panel */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/50 dark:border-slate-800 flex items-center justify-between">
+            <div className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl text-xs">
                 <div>
-                  <h4 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Hasil Klasifikasi</h4>
-                  <p className="text-base font-extrabold text-slate-800 dark:text-white mt-0.5">{selectedLog.level}</p>
+                  <span className="text-slate-400 block">Hasil Terdiagnosa:</span>
+                  <span className="font-bold text-slate-800 dark:text-white text-sm">{selectedLog.disease_name}</span>
                 </div>
-                <div className="text-right">
-                  <h4 className="text-xs font-bold uppercase text-slate-400 tracking-wider">Tingkat Keyakinan (CF)</h4>
-                  <p className="text-xl font-mono font-extrabold text-teal-600 dark:text-teal-400 mt-0.5">{selectedLog.score.toFixed(1)}%</p>
+                <div>
+                  <span className="text-slate-400 block">Tingkat Kepastian (CF):</span>
+                  <span className="font-extrabold text-teal-600 dark:text-teal-400 text-sm">{selectedLog.score}%</span>
                 </div>
               </div>
 
-              {/* Answers Grid */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Input Gejala yang Dialami</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {Object.entries(selectedLog.answers).map(([code, value]) => (
-                    <div
-                      key={code}
-                      className="p-2.5 rounded-xl border border-slate-200/60 bg-white dark:border-slate-800 dark:bg-slate-950/60 flex items-center justify-between"
-                    >
-                      <span className="font-mono text-xs font-bold text-teal-600 dark:text-teal-400">{code}</span>
-                      <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
-                        {value > 0 ? `+${value.toFixed(1)}` : value.toFixed(1)}
+                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  Gejala Yang Dipilih &amp; Bobot Keyakinan Pengguna:
+                </h4>
+                <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                  {Object.entries(selectedLog.answers || {}).map(([code, val]) => (
+                    <div key={code} className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/30 px-3 py-2 rounded-lg text-xs">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">
+                        {code} - {typeof val === 'object' ? val.name : val}
+                      </span>
+                      <span className="font-bold text-teal-600 dark:text-teal-400">
+                        CF User: {typeof val === 'object' ? val.user_cf : val}
                       </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Suggestions Panel */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Saran Penanganan Pakar</h4>
-                <div className="space-y-2.5">
-                  {selectedLog.suggestions.map((s, idx) => (
-                    <div
-                      key={idx}
-                      className="p-3.5 rounded-2xl bg-teal-500/[0.03] border border-teal-500/10 text-xs sm:text-sm text-slate-650 dark:text-slate-350 leading-relaxed flex items-start gap-3"
-                    >
-                      <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-xs">
-                        {idx + 1}
-                      </span>
-                      <span>{s}</span>
-                    </div>
+                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  Solusi &amp; Rekomendasi Medis:
+                </h4>
+                <ul className="list-disc list-inside text-xs text-slate-600 dark:text-slate-400 space-y-1 bg-teal-50/50 dark:bg-teal-950/30 p-3 rounded-xl border border-teal-100 dark:border-teal-900">
+                  {(selectedLog.solutions || []).map((sol, idx) => (
+                    <li key={idx}>{sol}</li>
                   ))}
-                </div>
+                </ul>
               </div>
             </div>
-
-            {/* Modal Footer */}
-            <div className="p-6 border-t border-slate-100 dark:border-slate-850 flex justify-end">
+            <div className="px-6 py-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 flex justify-end">
               <button
-                type="button"
-                onClick={closeModal}
-                className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-sm transition-all focus:outline-none"
+                onClick={closeDetail}
+                className="px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium"
               >
-                Tutup Rincian
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Custom Delete Confirmation Modal */}
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white border border-slate-200 shadow-2xl dark:bg-slate-900 dark:border-slate-800 p-6">
-            <div className="flex items-center gap-4 mb-4">
-              <span className="p-3 rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 shrink-0">
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </span>
-              <div>
-                <h3 className="text-lg font-bold text-slate-850 dark:text-white">Konfirmasi Hapus</h3>
-                <p className="text-xs text-slate-400 dark:text-slate-500">Tindakan ini tidak dapat dibatalkan.</p>
-              </div>
-            </div>
-            <p className="text-sm text-slate-600 dark:text-slate-350 leading-relaxed mb-6">
-              Apakah Anda yakin ingin menghapus data diagnosa <span className="font-extrabold text-slate-850 dark:text-white">"No. {deleteIndex} ({deleteName})"</span>?
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-sm font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-850 transition cursor-pointer"
-              >
-                Batal
-              </button>
-              <button
-                onClick={executeDelete}
-                className="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-bold text-sm shadow-lg shadow-rose-500/20 transition cursor-pointer"
-              >
-                Ya, Hapus
+                Tutup
               </button>
             </div>
           </div>
